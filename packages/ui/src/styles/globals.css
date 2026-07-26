@@ -25,6 +25,13 @@
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
+    --color-info-foreground: var(--info-foreground);
+    --color-info: var(--info);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-warning: var(--warning);
+    --color-success-foreground: var(--success-foreground);
+    --color-success: var(--success);
+    --color-destructive-foreground: var(--destructive-foreground);
     --color-destructive: var(--destructive);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
@@ -66,6 +73,21 @@
     --accent: oklch(0.967 0.001 286.375);
     --accent-foreground: oklch(0.21 0.006 285.885);
     --destructive: oklch(0.577 0.245 27.325);
+    /* Vocabulario de estado. El valor de --destructive no se toca: lo único
+       nuevo es su foreground, que habilita el registro SÓLIDO (grave, no
+       tocable) frente al TEÑIDO de hoy (acción destructiva, sí tocable).
+       success = confirmado (acuse de SIFEN, cobro acreditado, arqueo que cuadra).
+       warning = urgente y accionable, sin incumplimiento (72 h en aviso,
+       umbral innominado alcanzado). info = en curso o contexto, sin alarma
+       (sin conexión, documento en cola); hue 236 a 57° del violeta para que
+       no se lea como control. */
+    --destructive-foreground: oklch(1 0 0);
+    --success: oklch(0.46 0.121 152);
+    --success-foreground: oklch(1 0 0);
+    --warning: oklch(0.53 0.115 70);
+    --warning-foreground: oklch(1 0 0);
+    --info: oklch(0.5 0.108 236);
+    --info-foreground: oklch(1 0 0);
     --border: oklch(0.92 0.004 286.32);
     --input: oklch(0.92 0.004 286.32);
     --ring: oklch(0.705 0.015 286.067);
@@ -74,7 +96,11 @@
     --chart-3: oklch(0.541 0.281 293.009);
     --chart-4: oklch(0.491 0.27 292.581);
     --chart-5: oklch(0.432 0.232 292.759);
-    --radius: 0.875rem;
+    /* Bajado de 0.875rem (el "radius: large" del preset) a 0.5rem.
+       El paso 4xl (× 2.6) que usan Button y Card pasa de 36,4px a 20,8px, así
+       que a 48px de alto el botón deja de leerse como píldora. Toda la escala
+       se recalcula sola: no hace falta tocar ningún componente. */
+    --radius: 0.5rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.141 0.005 285.823);
     --sidebar-primary: oklch(0.541 0.281 293.009);
@@ -101,6 +127,16 @@
     --accent: oklch(0.274 0.006 286.033);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
+    /* En oscuro los cuatro estados suben luminancia y bajan a texto zinc-950
+       como foreground: en tablet, con luz mala y fuera de eje, el sólido tiene
+       que seguir contrastando. */
+    --destructive-foreground: oklch(0.141 0.005 285.823);
+    --success: oklch(0.79 0.17 152);
+    --success-foreground: oklch(0.141 0.005 285.823);
+    --warning: oklch(0.8 0.162 70);
+    --warning-foreground: oklch(0.141 0.005 285.823);
+    --info: oklch(0.72 0.155 236);
+    --info-foreground: oklch(0.141 0.005 285.823);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.552 0.016 285.938);
@@ -117,6 +153,14 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.552 0.016 285.938);
+}
+
+/* Toda columna de guaraníes: cifras de ancho fijo y alineadas a la derecha, así
+   los miles quedan uno debajo del otro. Montos de 6 y 7 dígitos son lo normal
+   (ticket promedio ~Gs 85.000) y con cifras proporcionales la columna baila. */
+@utility guaranies {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
 }
 
 @layer base {
