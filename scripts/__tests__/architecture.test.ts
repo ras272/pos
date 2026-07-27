@@ -288,6 +288,50 @@ describe("checkWorkflows", () => {
       ".github/workflows/quality.yml: untrusted event data cannot be interpolated into run scripts"
     )
   })
+
+  it("rejects untrusted event data passed indirectly through env", async () => {
+    const root = await fixture({
+      ".github/workflows/quality.yml": [
+        "on: pull_request",
+        "permissions:",
+        "  contents: read",
+        "jobs:",
+        "  quality:",
+        "    runs-on: ubuntu-latest",
+        "    env:",
+        "      TITLE: ${{ github.event.pull_request.title }}",
+        "    steps:",
+        '      - run: eval "$TITLE"',
+        "",
+      ].join("\n"),
+    })
+
+    await expect(checkWorkflows(root)).resolves.toContain(
+      ".github/workflows/quality.yml: untrusted event data cannot be interpolated into run scripts"
+    )
+  })
+
+  it("rejects dynamic runner selection that could resolve to self-hosted", async () => {
+    const root = await fixture({
+      ".github/workflows/quality.yml": [
+        "on: pull_request",
+        "permissions:",
+        "  contents: read",
+        "jobs:",
+        "  quality:",
+        "    strategy:",
+        "      matrix:",
+        "        runner: [ubuntu-latest, self-hosted]",
+        "    runs-on: ${{ matrix.runner }}",
+        "    steps: []",
+        "",
+      ].join("\n"),
+    })
+
+    await expect(checkWorkflows(root)).resolves.toContain(
+      ".github/workflows/quality.yml: dynamic runs-on values are forbidden"
+    )
+  })
 })
 
 describe("repository tooling contract", () => {

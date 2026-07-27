@@ -36,6 +36,12 @@ function workflowExpressions(content) {
   return [...content.matchAll(/\$\{\{([\s\S]*?)\}\}/g)].map((match) => match[1])
 }
 
+function usesUntrustedGithubContext(expression) {
+  return /\bgithub\s*(?:\.\s*(?:event|actor|ref|head_ref|base_ref)\b|\[\s*["'](?:event|actor|ref|head_ref|base_ref)["']\s*\])/i.test(
+    expression
+  )
+}
+
 function hasTrigger(value, target) {
   if (typeof value === "string") return value === target
   if (Array.isArray(value)) return value.includes(target)
@@ -99,6 +105,13 @@ function inspectWorkflow(relativePath, content) {
   const runners = valuesForKey(workflow, "runs-on").flat()
   if (runners.some((runner) => runner === "self-hosted"))
     errors.push(`${relativePath}: self-hosted runners are forbidden`)
+  if (
+    runners.some(
+      (runner) =>
+        typeof runner !== "string" || workflowExpressions(runner).length > 0
+    )
+  )
+    errors.push(`${relativePath}: dynamic runs-on values are forbidden`)
 
   if (hasWritePermission(workflow))
     errors.push(`${relativePath}: workflow permissions must remain read-only`)
@@ -115,18 +128,7 @@ function inspectWorkflow(relativePath, content) {
   if (expressions.some((expression) => /\bsecrets\b/i.test(expression)))
     errors.push(`${relativePath}: workflow secret contexts are forbidden`)
 
-  const scripts = valuesForKey(workflow, "run").filter(
-    (script) => typeof script === "string"
-  )
-  if (
-    scripts.some((script) =>
-      workflowExpressions(script).some((expression) =>
-        /\bgithub\s*(?:\.\s*(?:event|actor|ref|head_ref|base_ref)\b|\[\s*["'](?:event|actor|ref|head_ref|base_ref)["']\s*\])/i.test(
-          expression
-        )
-      )
-    )
-  ) {
+  if (expressions.some(usesUntrustedGithubContext)) {
     errors.push(
       `${relativePath}: untrusted event data cannot be interpolated into run scripts`
     )
