@@ -15,7 +15,7 @@ const ignoredDirectories = new Set([
   "node_modules",
   "out",
 ])
-const sourceExtensions = new Set([".mjs", ".ts", ".tsx"])
+const sourceExtensions = new Set([".js", ".jsx", ".mjs", ".ts", ".tsx"])
 
 function normalize(filePath) {
   return filePath.replaceAll("\\", "/")

@@ -30,6 +30,14 @@ describe("checkFileSizes", () => {
     )
   })
 
+  it("applies the source limit to JavaScript files", async () => {
+    const root = await fixture({ "packages/core/src/large.js": oversized })
+
+    await expect(checkFileSizes(root)).resolves.toContain(
+      "packages/core/src/large.js: 251 lines exceeds the 250-line limit"
+    )
+  })
+
   it("excludes hash-identified generated sources and generated categories", async () => {
     const hash = createHash("sha256").update(oversized).digest("hex")
     const root = await fixture({

@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
 
+import createIgnore from "ignore"
+
 const requiredPublicVariables = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
@@ -86,6 +88,10 @@ export async function validateEnvExample(root = process.cwd()) {
       errors.push(".gitignore: .env* must remain ignored")
     if (!/^!\.env\.example\s*$/m.test(gitignore))
       errors.push(".gitignore: !.env.example exception is required")
+    else if (createIgnore().add(gitignore).ignores(".env.example"))
+      errors.push(
+        ".gitignore: .env.example must remain unignored after all rules"
+      )
   } catch (error) {
     errors.push(
       `.gitignore: ${error?.code === "ENOENT" ? "file is required" : error.message}`

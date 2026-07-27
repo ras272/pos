@@ -56,6 +56,15 @@ describe("checkArchitecture", () => {
     await expect(checkArchitecture(root)).resolves.toEqual([])
   })
 
+  it("allows Node-based tooling imports in root caja config files", async () => {
+    const root = await fixture({
+      "apps/caja/eslint.config.js":
+        'import config from "@workspace/eslint-config/react-internal"\nexport default config\n',
+    })
+
+    await expect(checkArchitecture(root)).resolves.toEqual([])
+  })
+
   it("rejects unapproved external runtime packages in caja", async () => {
     const root = await fixture({
       "apps/caja/src/main.ts": 'import { Pool } from "pg"\n',
@@ -145,6 +154,24 @@ describe("validateEnvExample", () => {
 
     await expect(validateEnvExample(root)).resolves.toContain(
       ".env.example: NEXT_PUBLIC_SUPABASE_URL must not be declared more than once"
+    )
+  })
+
+  it("rejects a later gitignore rule that hides the example again", async () => {
+    const root = await fixture({
+      ".env.example": [
+        "NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_replace-me",
+        "VITE_API_URL=https://api.example.com",
+        "VITE_SUPABASE_URL=https://your-project.supabase.co",
+        "VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_replace-me",
+        "",
+      ].join("\n"),
+      ".gitignore": ".env*\n!.env.example\n.env*\n",
+    })
+
+    await expect(validateEnvExample(root)).resolves.toContain(
+      ".gitignore: .env.example must remain unignored after all rules"
     )
   })
 })

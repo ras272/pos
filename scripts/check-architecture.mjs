@@ -95,6 +95,10 @@ function isExternalImport(specifier) {
   return !specifier.startsWith(".") && !specifier.startsWith("/")
 }
 
+function isCajaToolingConfig(relativePath) {
+  return /^apps\/caja\/[^/]+\.config\.[cm]?[jt]sx?$/.test(relativePath)
+}
+
 function packageImportsApp(root, absolutePath, specifier) {
   if (specifier.startsWith(".")) {
     return normalize(
@@ -133,7 +137,11 @@ export async function checkArchitecture(root = process.cwd()) {
       ) {
         errors.push(`${relativePath}: packages cannot import from apps`)
       }
-      if (!relativePath.startsWith("apps/caja/")) continue
+      if (
+        !relativePath.startsWith("apps/caja/") ||
+        isCajaToolingConfig(relativePath)
+      )
+        continue
       const forbidden =
         nodeModules.has(specifier) ||
         specifier === "server-only" ||
