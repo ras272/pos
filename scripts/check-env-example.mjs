@@ -28,7 +28,11 @@ function parseEnvironment(content) {
   const values = new Map()
   for (const line of content.split(/\r?\n/)) {
     const match = /^([A-Z][A-Z0-9_]*)=(.*)$/.exec(line.trim())
-    if (match) values.set(match[1], match[2])
+    if (!match) continue
+
+    const assignments = values.get(match[1]) ?? []
+    assignments.push(match[2])
+    values.set(match[1], assignments)
   }
   return values
 }
@@ -52,10 +56,14 @@ export async function validateEnvExample(root = process.cwd()) {
   for (const variable of requiredPublicVariables) {
     if (!values.has(variable))
       errors.push(`.env.example: ${variable} is required`)
-    else if (!isPlaceholder(values.get(variable)))
+    else if (!values.get(variable).every(isPlaceholder))
       errors.push(`.env.example: ${variable} must contain a placeholder`)
   }
-  for (const variable of values.keys()) {
+  for (const [variable, assignments] of values) {
+    if (assignments.length > 1)
+      errors.push(
+        `.env.example: ${variable} must not be declared more than once`
+      )
     if (
       !requiredPublicVariables.includes(variable) ||
       forbiddenNameParts.some((part) => variable.includes(part))
@@ -65,8 +73,8 @@ export async function validateEnvExample(root = process.cwd()) {
       )
     }
     if (
-      forbiddenValuePatterns.some((pattern) =>
-        pattern.test(values.get(variable))
+      assignments.some((value) =>
+        forbiddenValuePatterns.some((pattern) => pattern.test(value))
       )
     )
       errors.push(`.env.example: ${variable} contains a forbidden secret value`)

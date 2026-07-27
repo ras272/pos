@@ -128,6 +128,25 @@ describe("validateEnvExample", () => {
       ])
     )
   })
+
+  it("rejects duplicate variables that could hide an unsafe value", async () => {
+    const root = await fixture({
+      ".env.example": [
+        "NEXT_PUBLIC_SUPABASE_URL=https://real-project.supabase.co",
+        "NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_replace-me",
+        "VITE_API_URL=https://api.example.com",
+        "VITE_SUPABASE_URL=https://your-project.supabase.co",
+        "VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_replace-me",
+        "",
+      ].join("\n"),
+      ".gitignore": ".env*\n!.env.example\n",
+    })
+
+    await expect(validateEnvExample(root)).resolves.toContain(
+      ".env.example: NEXT_PUBLIC_SUPABASE_URL must not be declared more than once"
+    )
+  })
 })
 
 describe("checkWorkflows", () => {
@@ -201,6 +220,72 @@ describe("checkWorkflows", () => {
 
     await expect(checkWorkflows(root)).resolves.toContain(
       ".github/workflows/quality.yml: workflow permissions must remain read-only"
+    )
+  })
+
+  it("rejects quoted write permission values", async () => {
+    const root = await fixture({
+      ".github/workflows/quality.yml": [
+        "on: pull_request",
+        "permissions:",
+        "  contents: read",
+        "  pull-requests: 'write'",
+        '  "issues": "write"',
+        "jobs: {}",
+        "",
+      ].join("\n"),
+    })
+
+    await expect(checkWorkflows(root)).resolves.toContain(
+      ".github/workflows/quality.yml: workflow permissions must remain read-only"
+    )
+  })
+
+  it("rejects bracket and function access to sensitive workflow contexts", async () => {
+    const root = await fixture({
+      ".github/workflows/quality.yml": [
+        "on: pull_request",
+        "permissions:",
+        "  contents: read",
+        "jobs:",
+        "  quality:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - run : echo \"${{ secrets['DEPLOY_TOKEN'] }}\"",
+        "      - run: |",
+        "          echo \"${{ github['actor'] }}\"",
+        "          printf '%s' \"${{ toJSON(secrets) }}\"",
+        "",
+      ].join("\n"),
+    })
+
+    const errors = await checkWorkflows(root)
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("workflow secret contexts are forbidden"),
+        expect.stringContaining("untrusted event data"),
+      ])
+    )
+  })
+
+  it("rejects untrusted interpolation in explicit-indent block scalars", async () => {
+    const root = await fixture({
+      ".github/workflows/quality.yml": [
+        "on: pull_request",
+        "permissions:",
+        "  contents: read",
+        "jobs:",
+        "  quality:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - run: |-2",
+        '          echo "${{ github.actor }}"',
+        "",
+      ].join("\n"),
+    })
+
+    await expect(checkWorkflows(root)).resolves.toContain(
+      ".github/workflows/quality.yml: untrusted event data cannot be interpolated into run scripts"
     )
   })
 })
