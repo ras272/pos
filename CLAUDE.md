@@ -1,7 +1,8 @@
 # POS para gastronomía — Paraguay
 
 SaaS de gestión y punto de venta para restaurantes, lomiterías, cafés y bares en Paraguay.
-Greenfield: **no hay código todavía**. No hay stack elegido. No hay UI.
+La fundación técnica del monorepo ya está decidida; el producto y su dirección
+visual siguen en definición.
 
 Referencia de categoría: frambuesa.app (POS cloud argentino). Es referencia, **no** modelo a copiar.
 
@@ -22,14 +23,13 @@ Referencia de categoría: frambuesa.app (POS cloud argentino). Es referencia, **
 
 ## Sin decidir — no asumir
 
-| Qué | Estado |
-|---|---|
-| Nombre del producto | **abierto** (en un prototipo descartado se usó "ñande" como placeholder — no está elegido) |
-| Stack técnico | **abierto** |
-| Dirección visual / UI | **abierto** — un primer prototipo se descartó por completo |
-| Estructura y monto de planes | **abierto** — la banda de mercado es Gs 190.000–450.000/mes |
-| Proveedor de facturación electrónica | **abierto** — hay recomendación, no decisión |
-| Alcance exacto de la v1 | **abierto** — hay una auditoría de features en curso |
+| Qué                                  | Estado                                                                                     |
+| ------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Nombre del producto                  | **abierto** (en un prototipo descartado se usó "ñande" como placeholder — no está elegido) |
+| Dirección visual / UI                | **abierto** — un primer prototipo se descartó por completo                                 |
+| Estructura y monto de planes         | **abierto** — la banda de mercado es Gs 190.000–450.000/mes                                |
+| Proveedor de facturación electrónica | **abierto** — hay recomendación, no decisión                                               |
+| Alcance exacto de la v1              | **abierto** — hay una auditoría de features en curso                                       |
 
 ---
 
@@ -39,6 +39,7 @@ Esto no es opinión ni preferencia: sale de la normativa vigente y condiciona cu
 que se diseñe. Verificar contra fuente antes de cambiar cualquiera de estos puntos.
 
 **Facturación (SIFEN / DNIT — no AFIP, no ARCA):**
+
 - **Ventana de 72 h** desde la firma para transmitir el documento. Esto es lo que hace legalmente
   viable operar offline: se emite, se firma, se imprime y se entrega sin conexión, y se transmite
   al reconectar. El modo contingencia formal está deshabilitado (rechazo 1050); la ventana de 72 h
@@ -54,6 +55,7 @@ que se diseñe. Verificar contra fuente antes de cambiar cualquiera de estos pun
 - Cada cliente necesita su propio certificado F1, que **vence cada año** y se tramita presencialmente.
 
 **Cobros (PY-QR, estándar del BCP):**
+
 - El QR interoperable es 8 de cada 10 pagos digitales del país.
 - La spec ya trae nativos: **propina** (campos 55/56/57), **nº de factura** (62-01),
   **ID de terminal** (62-07), **MCC 5812 = restaurantes**. Solo PYG, montos sin decimales.
@@ -83,3 +85,11 @@ La investigación de mercado, regulatoria y competitiva está en la memoria del 
 
 **Al trabajar acá:** escribir en español. No inventar features, precios ni decisiones
 que no estén en la lista de "Decidido". Si algo hace falta y no está resuelto, preguntarlo.
+
+## Contratos técnicos
+
+La arquitectura está en `docs/ARCHITECTURE.md`; seguridad en
+`docs/SECURITY.md`; base de datos en `docs/DATABASE.md`; desarrollo local en
+`docs/DEVELOPMENT.md`; y UI en `packages/ui/DESIGN.md`. Esos documentos resuelven
+el stack técnico sin resolver nombre, alcance, precios, proveedor ni dirección
+visual del producto.
