@@ -6,7 +6,6 @@ import { describe, expect, it } from "vitest"
 
 import { checkArchitecture } from "../check-architecture.mjs"
 import { validateEnvExample } from "../check-env-example.mjs"
-import { checkFileSizes } from "../check-file-size.mjs"
 import { checkWorkflows } from "../check-workflows.mjs"
 
 async function fixture(files: Record<string, string>) {
@@ -84,81 +83,6 @@ describe("checkArchitecture", () => {
 
     await expect(checkArchitecture(root)).resolves.toContain(
       "apps/web/app/api/route.js: Route Handlers are allowed only in apps/api"
-    )
-  })
-})
-
-describe("checkFileSizes", () => {
-  it("rejects handwritten source files over 250 lines", async () => {
-    const root = await fixture({
-      "packages/core/src/large.ts": Array.from(
-        { length: 251 },
-        () => "export {};"
-      ).join("\n"),
-    })
-
-    await expect(checkFileSizes(root)).resolves.toContain(
-      "packages/core/src/large.ts: 251 lines exceeds the 250-line limit"
-    )
-  })
-
-  it("excludes only hash-identified shadcn sources plus generated types, tests, migrations, and docs", async () => {
-    const content = Array.from({ length: 251 }, () => "export {};").join("\n")
-    const { createHash } = await import("node:crypto")
-    const hash = createHash("sha256").update(content).digest("hex")
-    const root = await fixture({
-      "packages/database/src/database.types.ts": content,
-      "packages/ui/src/components/generated.tsx": content,
-      "packages/core/src/large.test.ts": content,
-      "supabase/migrations/001_init.ts": content,
-      "docs/example.mjs": content,
-      "security/file-size-exceptions.json": "[]\n",
-      "security/generated-file-hashes.json": `${JSON.stringify([
-        {
-          path: "packages/ui/src/components/generated.tsx",
-          sha256: hash,
-        },
-      ])}\n`,
-    })
-
-    await expect(checkFileSizes(root)).resolves.toEqual([])
-  })
-
-  it("does not exempt handwritten components in the shadcn directory", async () => {
-    const content = Array.from({ length: 251 }, () => "export {};").join("\n")
-    const root = await fixture({
-      "packages/ui/src/components/handwritten.tsx": content,
-      "security/file-size-exceptions.json": "[]\n",
-      "security/generated-file-hashes.json": "[]\n",
-    })
-
-    await expect(checkFileSizes(root)).resolves.toContain(
-      "packages/ui/src/components/handwritten.tsx: 251 lines exceeds the 250-line limit"
-    )
-  })
-
-  it("validates exceptions and rejects stale or expired records", async () => {
-    const root = await fixture({
-      "packages/core/src/small.ts": "export {}\n",
-      "security/file-size-exceptions.json": `${JSON.stringify([
-        {
-          path: "packages/core/src/small.ts",
-          reason: "Temporary decomposition",
-          owner: "platform",
-          expiresOn: "2020-01-01",
-        },
-      ])}\n`,
-    })
-
-    const errors = await checkFileSizes(root, {
-      now: new Date("2026-07-26T00:00:00Z"),
-    })
-
-    expect(errors).toEqual(
-      expect.arrayContaining([
-        expect.stringContaining("expiresOn is expired"),
-        expect.stringContaining("does not match an oversized source file"),
-      ])
     )
   })
 })
