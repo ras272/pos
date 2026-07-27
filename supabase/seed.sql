@@ -1,0 +1,2 @@
+-- Seed local intencionalmente vacio.
+-- La Task 5 agregara el esquema antes de incorporar datos de desarrollo.
