@@ -1,0 +1,10 @@
+{
+  "extends": "@workspace/typescript-config/base.json",
+  "compilerOptions": {
+    "paths": {
+      "@workspace/database": ["./src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.test-d.ts"],
+  "exclude": ["node_modules", "dist"]
+}
