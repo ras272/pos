@@ -44,7 +44,7 @@ generados. La identidad verificada se propaga a un cliente con alcance de
 usuario; PostgreSQL RLS aplica el límite final de tenant.
 
 `apps/api` concentra integraciones y operaciones HTTP de negocio. `apps/admin`
-puede ejecutar Server Actions, pero cada una se trata como un POST público y
+puede ejecutar Server Actions, pero cada una se trata como un POST expuesto a red y
 delega acceso a datos a un DAL `server-only`. Ambos caminos cumplen el contrato
 de [SECURITY.md](./SECURITY.md#controles-obligatorios-de-un-entrypoint).
 
