@@ -6,6 +6,10 @@ import {
   createIdentityAuthenticator,
   createClaimsReader,
 } from "../auth/identity"
+import {
+  createPlatformLimiter,
+  createRuntimeLimiter,
+} from "../rate-limit/runtime-limiter"
 import { createServerSupabaseClient } from "../supabase/server"
 
 export type ActionSecurity = Readonly<{
@@ -69,17 +73,12 @@ export function actionSecurity(
 
     environment: resolved,
 
-    // TodavÃ­a no hay backend de lÃ­mites compartido. En producciÃ³n esto falla
-    // cerrado antes de servir la primera Server Action; es un bloqueante de
-    // `docs/PRODUCTION_READINESS.md`.
-    rateLimit: overrides.rateLimit ?? {
-      kind: resolved === "production" ? "external" : "development-memory",
-      async limit() {
-        if (resolved === "production") {
-          throw new Error("No external rate-limit backend is configured")
-        }
-        return { allowed: true }
-      },
-    },
+    rateLimit:
+      overrides.rateLimit ??
+      createRuntimeLimiter({
+        environment: resolved,
+        external:
+          resolved === "production" ? createPlatformLimiter() : undefined,
+      }),
   }
 }

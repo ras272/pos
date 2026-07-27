@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 
-import { createCors } from "./lib/http/cors"
+import { createCors, type Cors } from "./lib/http/cors"
 import { apiSecurityHeaders, type Environment } from "./lib/security/headers"
 
 function environment(): Environment {
@@ -25,11 +25,23 @@ function harden(headers: Headers): void {
 // que el export HTTP sea una llamada directa al wrapper compartido, así que
 // envolverlo en la route rompería esa garantía.
 export function proxy(request: NextRequest): Response {
-  const cors = createCors({
-    allowedHeaders: ["Authorization", "Content-Type"],
-    allowedMethods: ["GET", "POST", "OPTIONS"],
-    allowedOrigins: allowedOrigins(),
-  })
+  let cors: Cors
+  try {
+    cors = createCors({
+      allowedHeaders: ["Authorization", "Content-Type"],
+      allowedMethods: ["GET", "POST", "OPTIONS"],
+      allowedOrigins: allowedOrigins(),
+    })
+  } catch {
+    // Sin orígenes válidos no hay política que aplicar. Se rechaza con un
+    // código explícito en vez de dejar escapar una excepción como 500 opaco.
+    const headers = new Headers()
+    harden(headers)
+    return Response.json(
+      { error: { code: "cors_unconfigured" } },
+      { headers, status: 503 }
+    )
+  }
 
   const preflight = cors.preflight(request)
   if (preflight) {
