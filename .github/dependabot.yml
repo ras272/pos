@@ -1,0 +1,42 @@
+version: 2
+
+# Las actualizaciones llegan agrupadas y revisadas. Un PR por dependencia
+# convierte la revisión en ruido, y el ruido se aprueba sin leer.
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    groups:
+      # Parches y menores juntos: son los que se revisan de un vistazo.
+      routine:
+        update-types:
+          - minor
+          - patch
+      # Los mayores van de a uno, porque cada uno puede romper contratos.
+      next:
+        patterns:
+          - next
+          - "@next/*"
+        update-types:
+          - major
+      supabase:
+        patterns:
+          - "@supabase/*"
+          - supabase
+        update-types:
+          - major
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns:
+          - "*"

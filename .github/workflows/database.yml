@@ -1,0 +1,50 @@
+name: database
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.18.0
+          cache: pnpm
+
+      # La CLI de Supabase está fijada como dependencia del repositorio, así
+      # que no hace falta una action de terceros para instalarla.
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Start local Supabase
+        run: pnpm exec supabase start
+
+      # Reconstruye desde cero: si una migración solo funciona sobre una base
+      # que ya existía, acá se cae.
+      - name: Apply migrations from scratch
+        run: pnpm exec supabase db reset --local
+
+      - name: Isolation and structure tests
+        run: pnpm exec supabase test db --local
+
+      # Regenera los tipos a un archivo temporal y los compara byte a byte
+      # contra los versionados.
+      - name: Generated types drift
+        run: pnpm db:types:check
+
+      - name: Stop local Supabase
+        if: always()
+        run: pnpm exec supabase stop

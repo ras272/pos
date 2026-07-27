@@ -1,0 +1,4 @@
+# Este repositorio corre solo en runners alojados por GitHub. No hay etiquetas
+# propias que declarar, y `scripts/check-workflows.mjs` rechaza `self-hosted`.
+self-hosted-runner:
+  labels: []

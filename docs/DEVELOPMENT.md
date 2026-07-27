@@ -31,6 +31,18 @@ Si una decisión abierta bloquea el trabajo, se pregunta.
   sin política declarada sería peor que no publicarla. El detalle por proyecto
   está en [VERCEL.md](./VERCEL.md#variables-por-proyecto).
 
+## Dependencias
+
+Dependabot abre actualizaciones agrupadas los lunes: menores y parches juntos,
+mayores de Next y Supabase por separado. Un PR por dependencia se aprueba sin
+leer, y eso no es revisar.
+
+`pnpm audit --audit-level high` es un gate de CI. Cuando una vulnerabilidad
+llega por una dependencia transitiva que no controlamos, se resuelve con un
+`pnpm.overrides` en el `package.json` raíz, no ignorando la advertencia. Cada
+override existe para cerrar una advisory concreta y se saca cuando el paquete
+padre actualiza por su cuenta.
+
 ## Cambios de base de datos
 
 1. Crear una migración SQL en `supabase/migrations/`.
