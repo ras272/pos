@@ -25,6 +25,11 @@ Si una decisión abierta bloquea el trabajo, se pregunta.
   compartidos a packages solo cuando no acoplen runtimes.
 - Los Route Handlers de negocio viven solo en `apps/api`. Las Server Actions de
   `apps/admin` usan el wrapper seguro y un DAL `server-only`.
+- `pnpm build` necesita variables de entorno: copiar `.env.example` a `.env`
+  antes de construir. `apps/caja` **falla el build** sin `VITE_SUPABASE_URL` ni
+  `VITE_API_URL`, porque su CSP se genera con esos orígenes exactos y publicarla
+  sin política declarada sería peor que no publicarla. El detalle por proyecto
+  está en [VERCEL.md](./VERCEL.md#variables-por-proyecto).
 
 ## Cambios de base de datos
 

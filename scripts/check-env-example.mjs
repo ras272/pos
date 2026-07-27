@@ -7,6 +7,7 @@ import createIgnore from "ignore"
 const requiredPublicVariables = [
   "ADMIN_ORIGIN",
   "CAJA_ORIGIN",
+  "NEXT_PUBLIC_API_URL",
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   "VITE_API_URL",

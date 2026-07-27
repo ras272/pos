@@ -21,6 +21,12 @@ export type CookieBridge = Readonly<{
 
 export type SessionRefresh = (bridge: CookieBridge) => Promise<void>
 
+export type UpdateSessionOptions = Readonly<{
+  refresh?: SessionRefresh
+  /** Encabezados que la app tiene que ver, por ejemplo el nonce de la CSP. */
+  requestHeaders?: Record<string, string>
+}>
+
 async function refreshWithSupabase(bridge: CookieBridge): Promise<void> {
   const config = publicConfig()
   const client = createServerClient<Database>(
@@ -28,22 +34,34 @@ async function refreshWithSupabase(bridge: CookieBridge): Promise<void> {
     config.supabasePublishableKey,
     { cookies: bridge as never }
   )
-  // `getClaims` valida la firma y, de paso, renueva el token si venciÃ³.
+  // `getClaims` valida la firma y, de paso, renueva el token si venció.
   await client.auth.getClaims()
 }
 
 /**
- * Renueva la sesiÃ³n y devuelve la respuesta con las cookies actualizadas.
+ * Renueva la sesión y devuelve la respuesta con las cookies actualizadas.
  *
- * El proxy es optimista: nunca es el lÃ­mite de autorizaciÃ³n. Si el refresh
+ * El proxy es optimista: nunca es el límite de autorización. Si el refresh
  * falla, la request sigue y quien decide es el Server Component o la Server
  * Action, que verifican identidad por su cuenta.
  */
 export async function updateSession(
   request: NextRequest,
-  refresh: SessionRefresh = refreshWithSupabase
+  options: UpdateSessionOptions = {}
 ): Promise<NextResponse> {
-  let response = NextResponse.next({ request })
+  const refresh = options.refresh ?? refreshWithSupabase
+
+  // Se reconstruye en cada llamada porque `request.cookies.set` muta el
+  // encabezado `cookie`: clonar antes dejaría a la app viendo el token viejo.
+  const forwardedHeaders = () => {
+    const headers = new Headers(request.headers)
+    for (const [key, value] of Object.entries(options.requestHeaders ?? {})) {
+      headers.set(key, value)
+    }
+    return headers
+  }
+
+  let response = NextResponse.next({ request: { headers: forwardedHeaders() } })
 
   const bridge: CookieBridge = {
     getAll: () => request.cookies.getAll(),
@@ -51,11 +69,13 @@ export async function updateSession(
       for (const { name, value } of cookiesToSet) {
         request.cookies.set(name, value)
       }
-      response = NextResponse.next({ request })
-      for (const { name, options, value } of cookiesToSet) {
-        response.cookies.set(name, value, options)
+      response = NextResponse.next({
+        request: { headers: forwardedHeaders() },
+      })
+      for (const { name, options: cookieOptions, value } of cookiesToSet) {
+        response.cookies.set(name, value, cookieOptions)
       }
-      // Una respuesta que setea cookies de sesiÃ³n no puede quedar en una cache
+      // Una respuesta que setea cookies de sesión no puede quedar en una cache
       // compartida: si se cachea, un usuario recibe el token de otro.
       for (const [key, value] of Object.entries(cacheHeaders ?? {})) {
         response.headers.set(key, value)
