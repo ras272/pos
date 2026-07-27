@@ -9,7 +9,7 @@
     "db:types:check": "node scripts/check-database-types.mjs",
     "dev": "turbo dev",
     "format": "turbo format",
-    "format:check": "prettier --check docs AGENTS.md CLAUDE.md README.md package.json turbo.json scripts security packages/database/package.json packages/database/tsconfig.json packages/database/eslint.config.js packages/database/README.md packages/database/src/index.ts packages/database/src/index.test-d.ts packages/env packages/supabase packages/eslint-config/base.js packages/eslint-config/package.json packages/ui/eslint.config.js",
+    "format:check": "prettier --check docs AGENTS.md CLAUDE.md README.md package.json turbo.json scripts security packages/database/package.json packages/database/tsconfig.json packages/database/eslint.config.js packages/database/README.md packages/database/src/index.ts packages/database/src/index.test-d.ts packages/env packages/supabase packages/api packages/eslint-config/base.js packages/eslint-config/package.json packages/ui/eslint.config.js",
     "lint": "turbo lint -- --max-warnings=0",
     "security": "node scripts/check-architecture.mjs && node scripts/check-env-example.mjs && node scripts/check-file-size.mjs && node scripts/check-entrypoints.mjs && node scripts/check-workflows.mjs && node scripts/security-patterns.mjs",
     "test": "vitest run",
