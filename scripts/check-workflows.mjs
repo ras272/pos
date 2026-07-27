@@ -37,8 +37,9 @@ function workflowExpressions(content) {
 }
 
 function usesUntrustedGithubContext(expression) {
-  return /\bgithub\s*(?:\.\s*(?:event|actor|ref|head_ref|base_ref)\b|\[\s*["'](?:event|actor|ref|head_ref|base_ref)["']\s*\])/i.test(
-    expression
+  return (
+    /\bgithub\s*\[/i.test(expression) ||
+    /\bgithub\s*\.\s*(?:event|actor|ref|head_ref|base_ref)\b/i.test(expression)
   )
 }
 

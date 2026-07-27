@@ -332,6 +332,26 @@ describe("checkWorkflows", () => {
       ".github/workflows/quality.yml: dynamic runs-on values are forbidden"
     )
   })
+
+  it("rejects dynamic access to GitHub context properties", async () => {
+    const root = await fixture({
+      ".github/workflows/quality.yml": [
+        "on: pull_request",
+        "permissions:",
+        "  contents: read",
+        "jobs:",
+        "  quality:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - run: echo \"${{ github[format('event')] }}\"",
+        "",
+      ].join("\n"),
+    })
+
+    await expect(checkWorkflows(root)).resolves.toContain(
+      ".github/workflows/quality.yml: untrusted event data cannot be interpolated into run scripts"
+    )
+  })
 })
 
 describe("repository tooling contract", () => {
