@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { PublicEnvValidationError, parsePublicEnv } from "./public.js"
+import { PublicEnvValidationError, parsePublicEnv } from "./public"
 
 const validEnv = {
   SUPABASE_URL: "https://example.supabase.co",

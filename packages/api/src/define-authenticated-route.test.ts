@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { z } from "zod"
 
-import { defineAuthenticatedRoute } from "./index.js"
+import { defineAuthenticatedRoute } from "./index"
 
 describe("defineAuthenticatedRoute", () => {
   it("returns 401 when identity verification finds no actor", async () => {

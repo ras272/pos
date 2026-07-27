@@ -1,4 +1,4 @@
-import type { VerifiedActor } from "./authenticate.js"
+import type { VerifiedActor } from "./authenticate"
 
 export type AuthorizationDecision = Readonly<{ allowed: boolean }>
 

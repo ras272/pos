@@ -1,6 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": ["ADMIN_ORIGIN", "CAJA_ORIGIN", "NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

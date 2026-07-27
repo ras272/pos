@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@workspace/database"
 import type { PublicEnv } from "@workspace/env/public"
 
-import type { BrowserSupabaseClient } from "./types.js"
+import type { BrowserSupabaseClient } from "./types"
 
 export function createBrowserClient(config: PublicEnv): BrowserSupabaseClient {
   return createClient<Database>(
@@ -12,4 +12,4 @@ export function createBrowserClient(config: PublicEnv): BrowserSupabaseClient {
   )
 }
 
-export type { BrowserSupabaseClient } from "./types.js"
+export type { BrowserSupabaseClient } from "./types"

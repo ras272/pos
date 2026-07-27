@@ -1,21 +1,21 @@
 import type { z } from "zod"
 
-import type { AuditSink } from "./audit.js"
-import type { Authenticator, VerifiedActor } from "./authenticate.js"
-import type { Authorizer } from "./authorize.js"
+import type { AuditSink } from "./audit"
+import type { Authenticator, VerifiedActor } from "./authenticate"
+import type { Authorizer } from "./authorize"
 import {
   actionFailure,
   auditAllowed,
   auditFailure,
   createActionFailure,
-} from "./fail-closed.js"
-import { createRequestId } from "./json.js"
+} from "./fail-closed"
+import { createRequestId } from "./json"
 import {
   assertNamedRateLimitPolicy,
   assertProductionRateLimiter,
   isExecutableRateLimiter,
   type RateLimiter,
-} from "./rate-limit.js"
+} from "./rate-limit"
 
 type AuthenticatedActionContext<Input, Client> = {
   actor: VerifiedActor

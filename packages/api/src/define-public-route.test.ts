@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { z } from "zod"
 
-import { definePublicRoute } from "./index.js"
+import { definePublicRoute } from "./index"
 
 describe("definePublicRoute", () => {
   it("fails closed when the public-entrypoint manifest does not approve the exemption", async () => {

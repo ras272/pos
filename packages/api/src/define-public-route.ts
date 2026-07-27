@@ -1,15 +1,15 @@
 import type { z } from "zod"
 
-import type { AuditSink } from "./audit.js"
-import { errorResponse } from "./errors.js"
-import { auditAllowed, createResponseFailure } from "./fail-closed.js"
-import { createRequestId, readJson, successResponse } from "./json.js"
+import type { AuditSink } from "./audit"
+import { errorResponse } from "./errors"
+import { auditAllowed, createResponseFailure } from "./fail-closed"
+import { createRequestId, readJson, successResponse } from "./json"
 import {
   assertNamedRateLimitPolicy,
   assertProductionRateLimiter,
   isExecutableRateLimiter,
   type RateLimiter,
-} from "./rate-limit.js"
+} from "./rate-limit"
 
 type PublicEntryPoint = { method: string; path: string }
 
@@ -67,8 +67,8 @@ export function definePublicRoute<Input, Output, Dto>(
     }
     const fail = createResponseFailure(context)
 
-    // La aprobación del manifiesto vale para un método y una ruta concretos: si
-    // la request no es esa, la ruta está montada fuera de lo revisado.
+    // La aprobaciÃ³n del manifiesto vale para un mÃ©todo y una ruta concretos: si
+    // la request no es esa, la ruta estÃ¡ montada fuera de lo revisado.
     if (!matchesEntryPoint(request, options.publicEntryPoint)) {
       return fail({
         code: "public_entrypoint_mismatch",

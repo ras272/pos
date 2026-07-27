@@ -6,4 +6,4 @@ export type {
   Tables,
   TablesInsert,
   TablesUpdate,
-} from "./database.types.js"
+} from "./database.types"

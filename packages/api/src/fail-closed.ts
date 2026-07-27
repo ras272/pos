@@ -1,5 +1,5 @@
-import { tryWriteAudit, type AuditSink } from "./audit.js"
-import { errorResponse } from "./errors.js"
+import { tryWriteAudit, type AuditSink } from "./audit"
+import { errorResponse } from "./errors"
 
 export type FailureContext = Readonly<{
   action: string
@@ -39,7 +39,7 @@ export async function auditFailure(
   })
 }
 
-/** Registra la autorización concedida antes de ejecutar el handler. */
+/** Registra la autorizaciÃ³n concedida antes de ejecutar el handler. */
 export async function auditAllowed(
   context: FailureContext,
   scope: Readonly<{ actorId?: string | null; resourceId?: string | null }>

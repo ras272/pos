@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { z } from "zod"
 
-import { defineAuthenticatedAction } from "./index.js"
+import { defineAuthenticatedAction } from "./index"
 
 describe("defineAuthenticatedAction", () => {
   it("returns a safe 401 result when verified identity is absent", async () => {
