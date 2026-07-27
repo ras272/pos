@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 
+import { isValidIsoDate } from "./iso-date.mjs"
+
 const httpMethods = new Set([
   "DELETE",
   "GET",
@@ -10,14 +12,6 @@ const httpMethods = new Set([
   "POST",
   "PUT",
 ])
-
-function validDate(value) {
-  return (
-    typeof value === "string" &&
-    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
-    !Number.isNaN(Date.parse(`${value}T00:00:00Z`))
-  )
-}
 
 function validateEntry(entry, index, today, seen, errors) {
   const label = `security/public-entrypoints.json[${index}]`
@@ -34,7 +28,7 @@ function validateEntry(entry, index, today, seen, errors) {
     if (typeof entry[field] !== "string" || !entry[field].trim())
       errors.push(`${label}: ${field} is required`)
   }
-  if (!validDate(entry.expiresOn))
+  if (!isValidIsoDate(entry.expiresOn))
     errors.push(`${label}: expiresOn must be an ISO date`)
   else if (entry.expiresOn < today)
     errors.push(`${label}: expiresOn is expired`)

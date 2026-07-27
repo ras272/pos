@@ -136,7 +136,7 @@ function routePath(relativePath) {
   const segments = relativePath
     .split("/")
     .slice(3, -1)
-    .filter((segment) => !/^\(.*\)$/.test(segment))
+    .filter((segment) => !/^\(.*\)$/.test(segment) && !segment.startsWith("@"))
   return `/${segments.join("/")}`
 }
 

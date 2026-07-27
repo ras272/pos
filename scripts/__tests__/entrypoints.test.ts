@@ -120,6 +120,29 @@ describe("checkEntrypoints", () => {
     ).resolves.toEqual([])
   })
 
+  it("omits parallel route folders from public manifest paths", async () => {
+    const root = await fixture({
+      "apps/api/app/@internal/health/route.ts": [
+        'import { definePublicRoute } from "@workspace/api"',
+        "export const GET = definePublicRoute({})",
+        "",
+      ].join("\n"),
+      "security/public-entrypoints.json": `${JSON.stringify([
+        {
+          method: "GET",
+          path: "/health",
+          reason: "Infrastructure health probe",
+          owner: "platform",
+          expiresOn: future,
+          noTenantData: true,
+          noMutation: true,
+        },
+      ])}\n`,
+    })
+
+    await expect(checkEntrypoints(root)).resolves.toEqual([])
+  })
+
   it("rejects expired, malformed, and stale public manifest entries", async () => {
     const root = await fixture({
       "security/public-entrypoints.json": `${JSON.stringify([
@@ -146,6 +169,26 @@ describe("checkEntrypoints", () => {
         expect.stringContaining("mutationJustification is required"),
         expect.stringContaining("does not match a definePublicRoute export"),
       ])
+    )
+  })
+
+  it("rejects impossible calendar dates in the public manifest", async () => {
+    const root = await fixture({
+      "security/public-entrypoints.json": `${JSON.stringify([
+        {
+          method: "GET",
+          path: "/future",
+          reason: "Invalid date fixture",
+          owner: "platform",
+          expiresOn: "2099-02-30",
+          noTenantData: true,
+          noMutation: true,
+        },
+      ])}\n`,
+    })
+
+    await expect(checkEntrypoints(root)).resolves.toContain(
+      "security/public-entrypoints.json[0]: expiresOn must be an ISO date"
     )
   })
 

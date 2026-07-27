@@ -14,6 +14,35 @@ async function workflowFiles(root) {
   }
 }
 
+function runScripts(content) {
+  const lines = content.split(/\r?\n/)
+  const scripts = []
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = /^(\s*)(?:-\s+)?run:\s*(.*)$/.exec(lines[index])
+    if (!match) continue
+
+    const indentation = match[1].length
+    const value = match[2]
+    if (!/^[>|][+-]?\s*(?:#.*)?$/.test(value)) {
+      scripts.push(value)
+      continue
+    }
+
+    const block = []
+    while (index + 1 < lines.length) {
+      const nextLine = lines[index + 1]
+      const nextIndentation = /^\s*/.exec(nextLine)[0].length
+      if (nextLine.trim() && nextIndentation <= indentation) break
+      block.push(nextLine)
+      index += 1
+    }
+    scripts.push(block.join("\n"))
+  }
+
+  return scripts
+}
+
 function inspectWorkflow(relativePath, content) {
   const errors = []
   if (/\bpull_request_target\b/m.test(content))
@@ -21,13 +50,13 @@ function inspectWorkflow(relativePath, content) {
   if (/runs-on:\s*(?:\[[^\]]*\bself-hosted\b|self-hosted\b)/i.test(content))
     errors.push(`${relativePath}: self-hosted runners are forbidden`)
   if (
-    /^permissions:\s*write-all\s*$/m.test(content) ||
-    /^\s+[a-z-]+:\s*write\s*$/m.test(content)
+    /^permissions:\s*write-all(?:\s+#.*)?$/m.test(content) ||
+    /^\s+["']?[a-z-]+["']?:\s*write(?:\s+#.*)?$/m.test(content)
   ) {
     errors.push(`${relativePath}: workflow permissions must remain read-only`)
   }
   if (
-    !/^permissions:\s*(?:\{\s*contents:\s*read\s*\}|\r?\n\s+contents:\s+read\s*$)/m.test(
+    !/^permissions:\s*(?:\{\s*contents:\s*read\s*\}|\r?\n\s+contents:\s+read(?:\s+#.*)?$)/m.test(
       content
     )
   ) {
@@ -52,15 +81,21 @@ function inspectWorkflow(relativePath, content) {
       )
   }
 
+  if (/\$\{\{\s*secrets\./i.test(content))
+    errors.push(`${relativePath}: workflow secret contexts are forbidden`)
+
+  const scripts = runScripts(content)
   if (
-    /run:\s*(?:\|[\s\S]*?)?\$\{\{\s*github\.(?:event|head_ref)/m.test(content)
+    scripts.some((script) =>
+      /\$\{\{[\s\S]*?github\.(?:event|actor|ref|head_ref|base_ref)\b[\s\S]*?\}\}/i.test(
+        script
+      )
+    )
   ) {
     errors.push(
       `${relativePath}: untrusted event data cannot be interpolated into run scripts`
     )
   }
-  if (/run:.*(?:echo|print).*(?:secrets\.|TOKEN|KEY)/i.test(content))
-    errors.push(`${relativePath}: workflow steps cannot echo secrets`)
   return errors
 }
 

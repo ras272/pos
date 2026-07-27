@@ -105,6 +105,29 @@ describe("validateEnvExample", () => {
       ])
     )
   })
+
+  it("rejects unknown variables and secret values in examples", async () => {
+    const root = await fixture({
+      ".env.example": [
+        "NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_replace-me",
+        "VITE_API_URL=https://api.example.com",
+        "VITE_SUPABASE_URL=https://your-project.supabase.co",
+        "VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_replace-me",
+        "FOO=sb_secret_example-real-secret",
+        "",
+      ].join("\n"),
+      ".gitignore": ".env*\n!.env.example\n",
+    })
+
+    const errors = await validateEnvExample(root)
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("FOO is not an approved public variable"),
+        expect.stringContaining("FOO contains a forbidden secret value"),
+      ])
+    )
+  })
 })
 
 describe("checkWorkflows", () => {
@@ -135,6 +158,49 @@ describe("checkWorkflows", () => {
         expect.stringContaining("self-hosted"),
         expect.stringContaining("immutable 40-character SHA"),
       ])
+    )
+  })
+
+  it("rejects multiline secret use and untrusted run interpolation", async () => {
+    const root = await fixture({
+      ".github/workflows/quality.yml": [
+        "on: pull_request",
+        "permissions:",
+        "  contents: read",
+        "jobs:",
+        "  quality:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - run: |",
+        '          echo "${{ secrets.DEPLOY_TOKEN }}"',
+        '          echo "${{ github.actor }}"',
+        "",
+      ].join("\n"),
+    })
+
+    const errors = await checkWorkflows(root)
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("workflow secret contexts are forbidden"),
+        expect.stringContaining("untrusted event data"),
+      ])
+    )
+  })
+
+  it("rejects commented write permissions", async () => {
+    const root = await fixture({
+      ".github/workflows/quality.yml": [
+        "on: pull_request",
+        "permissions:",
+        "  contents: read",
+        "  pull-requests: write # not allowed",
+        "jobs: {}",
+        "",
+      ].join("\n"),
+    })
+
+    await expect(checkWorkflows(root)).resolves.toContain(
+      ".github/workflows/quality.yml: workflow permissions must remain read-only"
     )
   })
 })

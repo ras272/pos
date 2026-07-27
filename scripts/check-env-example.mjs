@@ -16,6 +16,13 @@ const forbiddenNameParts = [
   "VERCEL_TOKEN",
   "PRIVATE_KEY",
 ]
+const forbiddenValuePatterns = [
+  /sb_secret_/i,
+  /service[_-]?role/i,
+  /postgres(?:ql)?:\/\//i,
+  /vercel_[a-z0-9_-]+/i,
+  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/i,
+]
 
 function parseEnvironment(content) {
   const values = new Map()
@@ -49,11 +56,20 @@ export async function validateEnvExample(root = process.cwd()) {
       errors.push(`.env.example: ${variable} must contain a placeholder`)
   }
   for (const variable of values.keys()) {
-    if (forbiddenNameParts.some((part) => variable.includes(part))) {
+    if (
+      !requiredPublicVariables.includes(variable) ||
+      forbiddenNameParts.some((part) => variable.includes(part))
+    ) {
       errors.push(
         `.env.example: ${variable} is not an approved public variable`
       )
     }
+    if (
+      forbiddenValuePatterns.some((pattern) =>
+        pattern.test(values.get(variable))
+      )
+    )
+      errors.push(`.env.example: ${variable} contains a forbidden secret value`)
   }
 
   try {

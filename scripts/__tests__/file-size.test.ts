@@ -85,4 +85,22 @@ describe("checkFileSizes", () => {
       ])
     )
   })
+
+  it("rejects impossible calendar dates in exceptions", async () => {
+    const root = await fixture({
+      "packages/core/src/large.ts": oversized,
+      "security/file-size-exceptions.json": `${JSON.stringify([
+        {
+          path: "packages/core/src/large.ts",
+          reason: "Invalid date fixture",
+          owner: "platform",
+          expiresOn: "2099-02-30",
+        },
+      ])}\n`,
+    })
+
+    await expect(checkFileSizes(root)).resolves.toContain(
+      "security/file-size-exceptions.json[0]: expiresOn must be an ISO date"
+    )
+  })
 })

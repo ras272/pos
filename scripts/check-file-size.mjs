@@ -3,6 +3,8 @@ import { readdir, readFile } from "node:fs/promises"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
 
+import { isValidIsoDate } from "./iso-date.mjs"
+
 const limit = 250
 const ignoredDirectories = new Set([
   ".git",
@@ -103,14 +105,6 @@ async function readExceptions(root, errors) {
   }
 }
 
-function validDate(value) {
-  return (
-    typeof value === "string" &&
-    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
-    !Number.isNaN(Date.parse(`${value}T00:00:00Z`))
-  )
-}
-
 function validateExceptions(exceptions, oversized, today, errors) {
   const seen = new Set()
   exceptions.forEach((entry, index) => {
@@ -128,7 +122,7 @@ function validateExceptions(exceptions, oversized, today, errors) {
       if (typeof entry[field] !== "string" || !entry[field].trim())
         errors.push(`${label}: ${field} is required`)
     }
-    if (!validDate(entry.expiresOn))
+    if (!isValidIsoDate(entry.expiresOn))
       errors.push(`${label}: expiresOn must be an ISO date`)
     else if (entry.expiresOn < today)
       errors.push(`${label}: expiresOn is expired`)
