@@ -52,6 +52,31 @@ describe("checkEntrypoints", () => {
     await expect(checkEntrypoints(root)).resolves.toEqual([])
   })
 
+  it("rejects a local function pretending to be an approved wrapper", async () => {
+    const root = await fixture({
+      "apps/api/app/orders/route.ts": [
+        "const defineAuthenticatedRoute = (value: unknown) => value",
+        "export const GET = defineAuthenticatedRoute({})",
+        "",
+      ].join("\n"),
+    })
+
+    await expect(checkEntrypoints(root)).resolves.toContain(
+      "apps/api/app/orders/route.ts: GET must use defineAuthenticatedRoute imported from @workspace/api"
+    )
+  })
+
+  it("checks JavaScript Route Handlers", async () => {
+    const root = await fixture({
+      "apps/api/app/orders/route.js":
+        "export async function POST() { return Response.json({ ok: true }) }\n",
+    })
+
+    await expect(checkEntrypoints(root)).resolves.toContain(
+      "apps/api/app/orders/route.js: POST must directly call defineAuthenticatedRoute or definePublicRoute"
+    )
+  })
+
   it("requires an exact, current manifest record for a public route", async () => {
     const root = await fixture({
       "apps/api/app/(public)/health/[probe]/route.ts": [

@@ -57,6 +57,16 @@ describe("checkArchitecture", () => {
     await expect(checkArchitecture(root)).resolves.toEqual([])
   })
 
+  it("rejects unapproved external runtime packages in caja", async () => {
+    const root = await fixture({
+      "apps/caja/src/main.ts": 'import { Pool } from "pg"\n',
+    })
+
+    await expect(checkArchitecture(root)).resolves.toContain(
+      "apps/caja/src/main.ts: caja cannot import pg"
+    )
+  })
+
   it("rejects Route Handlers outside apps/api", async () => {
     const root = await fixture({
       "apps/web/app/api/route.ts": "export const GET = () => new Response()\n",
@@ -64,6 +74,16 @@ describe("checkArchitecture", () => {
 
     await expect(checkArchitecture(root)).resolves.toContain(
       "apps/web/app/api/route.ts: Route Handlers are allowed only in apps/api"
+    )
+  })
+
+  it("rejects JavaScript Route Handlers outside apps/api", async () => {
+    const root = await fixture({
+      "apps/web/app/api/route.js": "export const GET = () => new Response()\n",
+    })
+
+    await expect(checkArchitecture(root)).resolves.toContain(
+      "apps/web/app/api/route.js: Route Handlers are allowed only in apps/api"
     )
   })
 })
@@ -82,8 +102,10 @@ describe("checkFileSizes", () => {
     )
   })
 
-  it("excludes generated database types, shadcn sources, tests, migrations, and docs", async () => {
+  it("excludes only hash-identified shadcn sources plus generated types, tests, migrations, and docs", async () => {
     const content = Array.from({ length: 251 }, () => "export {};").join("\n")
+    const { createHash } = await import("node:crypto")
+    const hash = createHash("sha256").update(content).digest("hex")
     const root = await fixture({
       "packages/database/src/database.types.ts": content,
       "packages/ui/src/components/generated.tsx": content,
@@ -91,9 +113,28 @@ describe("checkFileSizes", () => {
       "supabase/migrations/001_init.ts": content,
       "docs/example.mjs": content,
       "security/file-size-exceptions.json": "[]\n",
+      "security/generated-file-hashes.json": `${JSON.stringify([
+        {
+          path: "packages/ui/src/components/generated.tsx",
+          sha256: hash,
+        },
+      ])}\n`,
     })
 
     await expect(checkFileSizes(root)).resolves.toEqual([])
+  })
+
+  it("does not exempt handwritten components in the shadcn directory", async () => {
+    const content = Array.from({ length: 251 }, () => "export {};").join("\n")
+    const root = await fixture({
+      "packages/ui/src/components/handwritten.tsx": content,
+      "security/file-size-exceptions.json": "[]\n",
+      "security/generated-file-hashes.json": "[]\n",
+    })
+
+    await expect(checkFileSizes(root)).resolves.toContain(
+      "packages/ui/src/components/handwritten.tsx: 251 lines exceeds the 250-line limit"
+    )
   })
 
   it("validates exceptions and rejects stale or expired records", async () => {

@@ -17,6 +17,17 @@ const sourceExtensions = new Set([".js", ".jsx", ".mjs", ".ts", ".tsx"])
 const nodeModules = new Set(
   builtinModules.flatMap((name) => [name, `node:${name}`])
 )
+const browserSafeExternalImports = new Set([
+  "@supabase/supabase-js",
+  "@vitejs/plugin-react",
+  "react",
+  "react-dom",
+  "react-dom/client",
+  "react/jsx-runtime",
+  "vite",
+  "vitest",
+  "zod",
+])
 
 function normalize(filePath) {
   return filePath.replaceAll("\\", "/")
@@ -80,6 +91,10 @@ function isBrowserSafeWorkspaceImport(specifier, typeOnly) {
   )
 }
 
+function isExternalImport(specifier) {
+  return !specifier.startsWith(".") && !specifier.startsWith("/")
+}
+
 function packageImportsApp(root, absolutePath, specifier) {
   if (specifier.startsWith(".")) {
     return normalize(
@@ -94,7 +109,7 @@ export async function checkArchitecture(root = process.cwd()) {
   for (const absolutePath of await sourceFiles(root)) {
     const relativePath = normalize(path.relative(root, absolutePath))
     if (
-      path.posix.basename(relativePath) === "route.ts" &&
+      /^(?:route\.ts|route\.js)$/.test(path.posix.basename(relativePath)) &&
       relativePath.startsWith("apps/") &&
       !relativePath.startsWith("apps/api/")
     ) {
@@ -125,7 +140,11 @@ export async function checkArchitecture(root = process.cwd()) {
         specifier === "next" ||
         specifier.startsWith("next/") ||
         (specifier.startsWith("@workspace/") &&
-          !isBrowserSafeWorkspaceImport(specifier, typeOnly))
+          !isBrowserSafeWorkspaceImport(specifier, typeOnly)) ||
+        (!typeOnly &&
+          isExternalImport(specifier) &&
+          !specifier.startsWith("@workspace/") &&
+          !browserSafeExternalImports.has(specifier))
       if (forbidden)
         errors.push(`${relativePath}: caja cannot import ${specifier}`)
     }

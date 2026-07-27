@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { readdir, readFile } from "node:fs/promises"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
@@ -18,15 +19,58 @@ function normalize(filePath) {
   return filePath.replaceAll("\\", "/")
 }
 
-function isExcluded(filePath) {
+function isExcluded(filePath, generatedFiles) {
   return (
     filePath === "packages/database/src/database.types.ts" ||
-    filePath.startsWith("packages/ui/src/components/") ||
+    generatedFiles.has(filePath) ||
     filePath.startsWith("docs/") ||
     filePath.startsWith("supabase/migrations/") ||
     filePath.includes("/__tests__/") ||
     /\.(?:test|spec)(?:-d)?\.[cm]?[jt]sx?$/.test(filePath)
   )
+}
+
+async function readGeneratedFiles(root, errors) {
+  let entries
+  try {
+    entries = JSON.parse(
+      await readFile(
+        path.join(root, "security/generated-file-hashes.json"),
+        "utf8"
+      )
+    )
+  } catch (error) {
+    if (error?.code === "ENOENT") return new Set()
+    errors.push(`security/generated-file-hashes.json: ${error.message}`)
+    return new Set()
+  }
+  if (!Array.isArray(entries)) {
+    errors.push("security/generated-file-hashes.json: root must be an array")
+    return new Set()
+  }
+  const generatedFiles = new Set()
+  for (const [index, entry] of entries.entries()) {
+    const label = `security/generated-file-hashes.json[${index}]`
+    if (
+      !entry ||
+      typeof entry.path !== "string" ||
+      !entry.path.startsWith("packages/ui/src/components/") ||
+      !/^[a-f0-9]{64}$/.test(entry.sha256 ?? "")
+    ) {
+      errors.push(`${label}: valid component path and sha256 are required`)
+      continue
+    }
+    try {
+      const content = await readFile(path.join(root, entry.path), "utf8")
+      const actual = createHash("sha256").update(content).digest("hex")
+      if (actual === entry.sha256) generatedFiles.add(entry.path)
+      else
+        errors.push(`${label}: generated file hash changed for ${entry.path}`)
+    } catch (error) {
+      errors.push(`${label}: cannot read ${entry.path}: ${error.message}`)
+    }
+  }
+  return generatedFiles
 }
 
 async function sourceFiles(root, directory = root) {
@@ -102,9 +146,10 @@ export async function checkFileSizes(
 ) {
   const errors = []
   const oversized = new Map()
+  const generatedFiles = await readGeneratedFiles(root, errors)
   for (const absolutePath of await sourceFiles(root)) {
     const relativePath = normalize(path.relative(root, absolutePath))
-    if (isExcluded(relativePath)) continue
+    if (isExcluded(relativePath, generatedFiles)) continue
     const content = await readFile(absolutePath, "utf8")
     const lines =
       content === "" ? 0 : content.replace(/\r?\n$/, "").split(/\r?\n/).length

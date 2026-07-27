@@ -15,6 +15,7 @@ const httpMethods = new Set([
   "PUT",
 ])
 const wrappers = new Set(["defineAuthenticatedRoute", "definePublicRoute"])
+const apiModules = /^@workspace\/api(?:\/.*)?$/
 const ignoredDirectories = new Set([
   ".git",
   ".next",
@@ -52,6 +53,31 @@ function calledWrapper(expression) {
     ts.isIdentifier(expression.expression)
     ? expression.expression.text
     : undefined
+}
+
+function approvedImports(sourceFile) {
+  const imports = new Map()
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isImportDeclaration(statement) ||
+      !ts.isStringLiteral(statement.moduleSpecifier) ||
+      !apiModules.test(statement.moduleSpecifier.text) ||
+      !statement.importClause?.namedBindings ||
+      !ts.isNamedImports(statement.importClause.namedBindings)
+    ) {
+      continue
+    }
+    for (const element of statement.importClause.namedBindings.elements) {
+      const importedName = (element.propertyName ?? element.name).text
+      if (
+        wrappers.has(importedName) ||
+        importedName === "defineAuthenticatedAction"
+      ) {
+        imports.set(element.name.text, importedName)
+      }
+    }
+  }
+  return imports
 }
 
 function localInitializers(sourceFile) {
@@ -116,12 +142,17 @@ function routePath(relativePath) {
 
 function checkRoute(relativePath, sourceFile, manifest, observed, errors) {
   const endpointPath = routePath(relativePath)
+  const imports = approvedImports(sourceFile)
   for (const value of exportedValues(sourceFile)) {
     if (!httpMethods.has(value.name)) continue
-    const wrapper = calledWrapper(value.initializer)
-    if (!wrappers.has(wrapper)) {
+    const called = calledWrapper(value.initializer)
+    const wrapper = called ? imports.get(called) : undefined
+    if (!wrapper) {
+      const detail = wrappers.has(called)
+        ? `${called} imported from @workspace/api`
+        : "defineAuthenticatedRoute or definePublicRoute"
       errors.push(
-        `${relativePath}: ${value.name} must directly call defineAuthenticatedRoute or definePublicRoute`
+        `${relativePath}: ${value.name} must ${wrappers.has(called) ? "use" : "directly call"} ${detail}`
       )
       continue
     }
@@ -144,8 +175,10 @@ function checkServerActions(relativePath, sourceFile, errors) {
     ts.isStringLiteral(first.expression) &&
     first.expression.text === "use server"
   if (!useServer) return
+  const imports = approvedImports(sourceFile)
   for (const value of exportedValues(sourceFile)) {
-    if (calledWrapper(value.initializer) !== "defineAuthenticatedAction") {
+    const called = calledWrapper(value.initializer)
+    if (imports.get(called) !== "defineAuthenticatedAction") {
       errors.push(
         `${relativePath}: ${value.name} must directly call defineAuthenticatedAction`
       )
@@ -173,7 +206,7 @@ export async function checkEntrypoints(
     )
     if (
       relativePath.startsWith("apps/api/app/") &&
-      relativePath.endsWith("/route.ts")
+      /\/route\.(?:js|ts)$/.test(relativePath)
     ) {
       checkRoute(relativePath, sourceFile, manifest, observed, errors)
     }
