@@ -5,8 +5,9 @@ oculta o un botón deshabilitado ayudan a la experiencia, pero nunca autorizan.
 
 ## Controles obligatorios de un entrypoint
 
-Todo Route Handler, RPC o Server Action que lea o cambie datos pasa por estos
-controles antes de ejecutar negocio:
+Todo Route Handler, RPC o Server Action expuesto a red que lea o cambie datos
+pasa por estos controles antes de ejecutar negocio. Que el acceso sea
+autenticado no lo saca de esta categoría; sigue siendo un entrypoint de red:
 
 1. Verificar la identidad con claims validados; una sesión sin verificar no es
    identidad de servidor.
@@ -22,17 +23,20 @@ controles antes de ejecutar negocio:
 8. Responder con errores seguros, request ID y sin tokens, payloads, SQL ni
    detalles internos.
 
-Los entrypoints públicos requieren una excepción revisada, con propósito,
-owner y vencimiento. La clave publicable puede estar en el navegador; una clave
-`service_role`, `sb_secret_`, URL directa de Postgres o certificado privado no.
+Los entrypoints anónimos o sin autenticación requieren una excepción revisada,
+con propósito, owner y vencimiento. Esa excepción no se extiende por defecto a
+todo Server Action autenticado. La clave publicable puede estar en el navegador;
+una clave `service_role`, `sb_secret_`, URL directa de Postgres o certificado
+privado no.
 
 ## Server Actions
 
-Una Server Action es un endpoint POST público aunque solo la llame una UI del
-repositorio. Debe cumplir los mismos controles anteriores, incluyendo authn,
-authz por recurso, validación, rate limit y auditoría. La acción es un adaptador
-pequeño y delega en un DAL marcado `server-only`; no contiene consultas sueltas
-ni acepta `user_id`, `tenant_id` o rol como prueba de autoridad.
+Una Server Action es un endpoint POST expuesto a red aunque solo la llame una
+UI del repositorio. Por defecto es un entrypoint autenticado, no anónimo, y
+debe cumplir los mismos controles anteriores, incluyendo authn, authz por
+recurso, validación, rate limit y auditoría. La acción es un adaptador pequeño
+y delega en un DAL marcado `server-only`; no contiene consultas sueltas ni
+acepta `user_id`, `tenant_id` o rol como prueba de autoridad.
 
 ## Autoridad de tenant
 

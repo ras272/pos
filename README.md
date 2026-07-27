@@ -4,14 +4,19 @@ Monorepo para un SaaS de gestión y punto de venta offline-first. La fundación
 usa pnpm/Turborepo, Next.js, Vite/React y Supabase con aislamiento multi-tenant
 por RLS.
 
-## Aplicaciones
+## Arquitectura objetivo
 
 - `apps/web`: marketing público.
 - `apps/admin`: backoffice autenticado en Next.js.
 - `apps/caja`: POS browser-only en Vite.
 - `apps/api`: endpoints HTTP de negocio en Next.js.
+- Supabase: capa de datos, RLS y migraciones.
 
-Cada aplicación se despliega como proyecto Vercel independiente. Ver
+Hoy solo está scaffolded `apps/web`; `apps/admin`, `apps/caja`, `apps/api` y la
+capa Supabase siguen siendo arquitectura objetivo, así que todavía no se
+consideran localmente ejecutables.
+
+Cada aplicación se desplegará como proyecto Vercel independiente. Ver
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) antes de mover responsabilidades.
 
 ## Empezar

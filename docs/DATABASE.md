@@ -46,6 +46,16 @@ privileges restrictivos. `anon` y `authenticated` reciben únicamente
 `USAGE`/`SELECT`/`INSERT`/`UPDATE` o `EXECUTE` concretos. No reciben
 `TRUNCATE`; `DELETE` físico no se expone a clientes.
 
+Toda vista expuesta a clientes debe cumplir una de estas dos condiciones:
+
+- declararse con `security_invoker = true`; o
+- permanecer fuera de exposición, con grants revocados para que no sea
+  alcanzable por el Data API.
+
+Una vista expuesta por accidente es una fuga de superficie, no un detalle de
+implementación. Las vistas nuevas o modificadas también requieren cobertura de
+pgTAP que pruebe el acceso esperado y el acceso denegado.
+
 ## Funciones
 
 `SECURITY INVOKER` es el valor normal. Una función `SECURITY DEFINER` exige:
@@ -81,7 +91,10 @@ Una revisión confirma, como mínimo:
 - reset limpio, pgTAP y regeneración de tipos sin drift;
 - RLS forzado, policies por operación y grants mínimos para cada objeto nuevo;
 - inmutabilidad de tenant y aislamiento A → B en lectura y escritura;
-- funciones, views y schemas sin exposición privilegiada accidental;
+- funciones, views y schemas sin exposición privilegiada accidental; las
+  vistas expuestas cumplen `security_invoker = true` o quedan fuera de
+  exposición;
+- pgTAP cubre las vistas y funciones nuevas o modificadas;
 - índices para foreign keys y predicados de policy;
 - estrategia de rollback o forward-fix y efecto sobre datos existentes;
 - compatibilidad con sincronización offline y obligaciones de Paraguay cuando

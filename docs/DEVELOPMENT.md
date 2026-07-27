@@ -7,7 +7,9 @@
 3. Leer [ARCHITECTURE.md](./ARCHITECTURE.md), [SECURITY.md](./SECURITY.md) y
    [DATABASE.md](./DATABASE.md) según el área.
 4. Para Next.js, consultar la guía relevante instalada en
-   `node_modules/next/dist/docs/`; esta versión tiene cambios incompatibles con
+   el `node_modules` del workspace que realmente tenga Next instalado, por
+   ejemplo `apps/web/node_modules/next/dist/docs/`; no asumir un
+   `node_modules/` en la raíz. Esta versión tiene cambios incompatibles con
    conocimiento previo.
 
 No se inventan nombre, precios, alcance v1, proveedor SIFEN ni dirección visual.
