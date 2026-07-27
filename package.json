@@ -4,9 +4,16 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm security && pnpm build",
+    "db:types": "supabase gen types typescript --local",
+    "db:types:check": "node -e \"console.error('db:types:check requires the generated database package from Task 6'); process.exit(1)\"",
     "dev": "turbo dev",
-    "lint": "turbo lint",
     "format": "turbo format",
+    "format:check": "prettier --check docs AGENTS.md CLAUDE.md README.md package.json turbo.json scripts security packages/eslint-config/base.js packages/eslint-config/package.json packages/ui/eslint.config.js",
+    "lint": "turbo lint -- --max-warnings=0",
+    "security": "node scripts/check-architecture.mjs && node scripts/check-env-example.mjs && node scripts/check-file-size.mjs && node scripts/check-entrypoints.mjs && node scripts/check-workflows.mjs && node scripts/security-patterns.mjs",
+    "test": "vitest run",
+    "test:db": "supabase test db --local",
     "typecheck": "turbo typecheck"
   },
   "devDependencies": {
@@ -14,11 +21,13 @@
     "@workspace/typescript-config": "workspace:*",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "supabase": "2.109.1",
     "turbo": "^2.9.18",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "4.1.10"
   },
   "packageManager": "pnpm@10.33.4",
   "engines": {
-    "node": ">=20"
+    "node": "24.18.0"
   }
 }
