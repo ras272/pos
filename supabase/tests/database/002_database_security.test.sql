@@ -495,5 +495,53 @@ select ok(
   'ninguna función de public o security queda ejecutable por PUBLIC'
 );
 
+-- El cuerpo de un SECURITY DEFINER corre como postgres, que tiene BYPASSRLS:
+-- adentro no hay policy que lo frene. La unica defensa es que la funcion
+-- verifique membresia por su cuenta, y esta asercion es lo que impide que esa
+-- regla quede en la disciplina de quien escriba el proximo RPC.
+--
+-- Se filtra por volatil porque ese es exactamente el conjunto que puede
+-- escribir: Postgres prohibe INSERT, UPDATE y DELETE dentro de una funcion que
+-- no lo sea. Y se lee prosrc, el cuerpo, no la definicion completa: si se
+-- leyera la cabecera, una funcion llamada is_tenant_member_algo pasaria sola.
+--
+-- bootstrap_tenant es la unica excepcion legitima: crea el tenant, asi que no
+-- puede exigir una membresia que todavia no existe.
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.pg_proc routine
+    join pg_catalog.pg_namespace routine_schema on routine_schema.oid = routine.pronamespace
+    where routine_schema.nspname = 'security'
+      and routine.prosecdef
+      and routine.provolatile = 'v'
+      and routine.prokind in ('f', 'p')
+      and routine.prorettype <> 'pg_catalog.trigger'::regtype
+      and routine.oid <> 'security.bootstrap_tenant(text,text)'::regprocedure
+      and (
+        -- `not security.is_tenant_member` cubre las dos formas en uso:
+        -- `if not ...` y `if v_tenant_id is null or not ...`, que ademas
+        -- rechaza la fila inexistente. Lo que no cubre es la ausencia de
+        -- verificacion, que es lo unico que se quiere prohibir.
+        routine.prosrc not like '%not security.is_tenant_member%'
+        or routine.prosrc not like '%42501%'
+      )
+  ),
+  'todo RPC de escritura de security verifica membresia y rechaza con 42501'
+);
+
+-- Ninguna funcion expuesta al Data API puede ser definer: los privilegiados
+-- viven en security, y en public solo quedan wrappers que delegan.
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.pg_proc routine
+    join pg_catalog.pg_namespace routine_schema on routine_schema.oid = routine.pronamespace
+    where routine_schema.nspname = 'public'
+      and routine.prosecdef
+  ),
+  'ninguna funcion de public es SECURITY DEFINER'
+);
+
 select * from finish();
 rollback;

@@ -1919,6 +1919,110 @@ export type Database = {
           tenant_id: string
         }[]
       }
+      cancel_document: {
+        Args: {
+          p_cancellation_id: string
+          p_document_id: string
+          p_reason: string
+          p_requested_at: string
+        }
+        Returns: string
+      }
+      close_cash_session: {
+        Args: {
+          p_cash_session_id: string
+          p_closed_at: string
+          p_closing_note: string
+          p_counted_cash_gs: number
+        }
+        Returns: {
+          closing_counted_gs: number
+          closing_difference_gs: number
+          closing_expected_gs: number
+        }[]
+      }
+      close_order: {
+        Args: {
+          p_cancel_reason: string
+          p_closed_at: string
+          p_order_id: string
+        }
+        Returns: string
+      }
+      issue_document: {
+        Args: {
+          p_business_date: string
+          p_buyer_doc_number: string
+          p_buyer_doc_type: string
+          p_buyer_name: string
+          p_buyer_ruc_dv: number
+          p_cash_session_id: string
+          p_customer_id: string
+          p_document_id: string
+          p_number: number
+          p_order_id: string
+          p_order_line_ids: string[]
+          p_signed_at: string
+        }
+        Returns: {
+          issued_document_id: string
+          issued_number: number
+          issued_total_gs: number
+          was_created: boolean
+        }[]
+      }
+      open_cash_session: {
+        Args: {
+          p_business_date: string
+          p_cash_session_id: string
+          p_expedition_point_id: string
+          p_opened_at: string
+          p_opening_float_gs: number
+        }
+        Returns: string
+      }
+      open_order: {
+        Args: {
+          p_business_date: string
+          p_cash_session_id: string
+          p_code: string
+          p_dining_table_id: string
+          p_guest_count: number
+          p_note: string
+          p_opened_at: string
+          p_order_id: string
+        }
+        Returns: string
+      }
+      record_transmission_result: {
+        Args: {
+          p_cancellation_id: string
+          p_cdc: string
+          p_document_id: string
+          p_outcome: string
+          p_request_payload_hash: string
+          p_response_code: string
+          p_response_message: string
+          p_transmitted_at: string
+        }
+        Returns: string
+      }
+      register_payment: {
+        Args: {
+          p_amount_gs: number
+          p_business_date: string
+          p_cash_session_id: string
+          p_change_gs: number
+          p_external_reference: string
+          p_method: string
+          p_occurred_at: string
+          p_order_id: string
+          p_payment_id: string
+          p_tendered_gs: number
+          p_tip_gs: number
+        }
+        Returns: string
+      }
       set_fiscal_threshold: {
         Args: {
           p_amount_gs: number
