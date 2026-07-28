@@ -9,6 +9,56 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      customers: {
+        Row: {
+          created_at: string
+          doc_number: string
+          doc_type: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          ruc_dv: number | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          doc_number: string
+          doc_type: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          ruc_dv?: number | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          doc_number?: string
+          doc_type?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          ruc_dv?: number | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dining_areas: {
         Row: {
           created_at: string
@@ -121,9 +171,84 @@ export type Database = {
           },
         ]
       }
+      document_counters: {
+        Row: {
+          created_at: string
+          document_type: string
+          establishment_id: string
+          id: string
+          last_number: number
+          pos_terminal_id: string
+          range_from: number
+          range_to: number
+          status: string
+          tenant_id: string
+          timbrado_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          establishment_id: string
+          id?: string
+          last_number?: number
+          pos_terminal_id: string
+          range_from: number
+          range_to: number
+          status?: string
+          tenant_id: string
+          timbrado_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          establishment_id?: string
+          id?: string
+          last_number?: number
+          pos_terminal_id?: string
+          range_from?: number
+          range_to?: number
+          status?: string
+          tenant_id?: string
+          timbrado_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_counters_establishment_id_fkey"
+            columns: ["establishment_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "document_counters_pos_terminal_id_fkey"
+            columns: ["pos_terminal_id", "establishment_id"]
+            isOneToOne: false
+            referencedRelation: "pos_terminals"
+            referencedColumns: ["id", "establishment_id"]
+          },
+          {
+            foreignKeyName: "document_counters_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_counters_timbrado_id_fkey"
+            columns: ["timbrado_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_timbrados"
+            referencedColumns: ["id", "tenant_id"]
+          },
+        ]
+      }
       establishments: {
         Row: {
           created_at: string
+          establishment_code: string | null
           id: string
           name: string
           status: string
@@ -132,6 +257,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          establishment_code?: string | null
           id?: string
           name: string
           status?: string
@@ -140,6 +266,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          establishment_code?: string | null
           id?: string
           name?: string
           status?: string
@@ -149,6 +276,148 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "establishments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fiscal_certificates: {
+        Row: {
+          created_at: string
+          establishment_id: string | null
+          expires_at: string
+          id: string
+          issuer: string
+          not_before: string
+          serial_number: string
+          status: string
+          subject_ruc: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          establishment_id?: string | null
+          expires_at: string
+          id?: string
+          issuer: string
+          not_before: string
+          serial_number: string
+          status?: string
+          subject_ruc: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          establishment_id?: string | null
+          expires_at?: string
+          id?: string
+          issuer?: string
+          not_before?: string
+          serial_number?: string
+          status?: string
+          subject_ruc?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_certificates_establishment_id_fkey"
+            columns: ["establishment_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "fiscal_certificates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fiscal_thresholds: {
+        Row: {
+          anonymous_buyer_threshold_gs: number
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          source_note: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          anonymous_buyer_threshold_gs: number
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          source_note?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          anonymous_buyer_threshold_gs?: number
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          source_note?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_thresholds_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fiscal_timbrados: {
+        Row: {
+          created_at: string
+          id: string
+          number: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          number: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          valid_from: string
+          valid_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          number?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_timbrados_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -247,6 +516,60 @@ export type Database = {
           },
           {
             foreignKeyName: "modifier_options_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_terminals: {
+        Row: {
+          created_at: string
+          device_label: string | null
+          establishment_id: string
+          expedition_point_code: string
+          id: string
+          name: string
+          order_code_prefix: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_label?: string | null
+          establishment_id: string
+          expedition_point_code: string
+          id?: string
+          name: string
+          order_code_prefix: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_label?: string | null
+          establishment_id?: string
+          expedition_point_code?: string
+          id?: string
+          name?: string
+          order_code_prefix?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_terminals_establishment_id_fkey"
+            columns: ["establishment_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "pos_terminals_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -483,12 +806,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_number_range: {
+        Args: {
+          p_document_type: string
+          p_pos_terminal_id: string
+          p_range_from: number
+          p_range_to: number
+          p_timbrado_id: string
+        }
+        Returns: string
+      }
       bootstrap_tenant: {
         Args: { p_establishment_name: string; p_tenant_name: string }
         Returns: {
           establishment_id: string
           tenant_id: string
         }[]
+      }
+      set_fiscal_threshold: {
+        Args: {
+          p_amount_gs: number
+          p_effective_from: string
+          p_establishment_id: string
+        }
+        Returns: string
       }
     }
     Enums: {
