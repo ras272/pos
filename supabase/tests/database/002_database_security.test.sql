@@ -387,5 +387,113 @@ select ok(
   'ningún override de rol o base de PostgREST expone security por Data API'
 );
 
+-- Aserciones de catálogo. Las de arriba enumeran objetos por nombre y solo
+-- cubren lo que alguien se acordó de agregar; estas recorren el catálogo, así
+-- que una tabla nueva que no cumpla rompe el CI sola, sin que nadie las toque.
+
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.pg_class c
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where n.nspname in ('public', 'security')
+      and c.relkind = 'r'
+      and not (c.relrowsecurity and c.relforcerowsecurity)
+  ),
+  'toda tabla de public y security tiene RLS habilitada y forzada'
+);
+
+-- Un índice parcial satisface el escaneo de prefijo de más arriba sin servir al
+-- ON DELETE ni al join: la FK necesita uno completo.
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.pg_constraint fk
+    join pg_catalog.pg_class table_class on table_class.oid = fk.conrelid
+    join pg_catalog.pg_namespace table_schema on table_schema.oid = table_class.relnamespace
+    where fk.contype = 'f'
+      and table_schema.nspname = 'public'
+      and not exists (
+        select 1
+        from pg_catalog.pg_index index_class
+        where index_class.indrelid = fk.conrelid
+          and index_class.indisvalid
+          and index_class.indpred is null
+          and array(
+            select indexed_column.attribute_number::smallint
+            from unnest(index_class.indkey::smallint[]) with ordinality as indexed_column(attribute_number, ordinal)
+            where indexed_column.ordinal <= array_length(fk.conkey, 1)
+            order by indexed_column.ordinal
+          ) = fk.conkey
+      )
+  ),
+  'cada foreign key pública tiene un índice completo, no solamente parcial'
+);
+
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.pg_attribute a
+    join pg_catalog.pg_class c on c.oid = a.attrelid
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relkind = 'r'
+      and a.attname = 'tenant_id'
+      and not a.attisdropped
+      and not exists (
+        select 1
+        from pg_catalog.pg_trigger t
+        where t.tgrelid = c.oid
+          and not t.tgisinternal
+          and t.tgfoid = 'security.prevent_tenant_id_change()'::regprocedure
+      )
+  ),
+  'toda tabla pública con tenant_id impide moverlo de tenant con un trigger'
+);
+
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.pg_attribute a
+    join pg_catalog.pg_class c on c.oid = a.attrelid
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relkind = 'r'
+      and a.attname = 'updated_at'
+      and not a.attisdropped
+      and not exists (
+        select 1
+        from pg_catalog.pg_trigger t
+        where t.tgrelid = c.oid
+          and not t.tgisinternal
+          and t.tgfoid = 'security.set_updated_at()'::regprocedure
+      )
+  ),
+  'toda tabla pública con updated_at lo mantiene con un trigger'
+);
+
+-- El dominio archiva con status; el borrado físico no se expone a un cliente.
+select ok(
+  not exists (
+    select 1
+    from information_schema.role_table_grants g
+    where g.table_schema in ('public', 'security')
+      and g.grantee in ('anon', 'authenticated')
+      and g.privilege_type in ('DELETE', 'TRUNCATE')
+  ),
+  'ningún rol de cliente recibe DELETE ni TRUNCATE'
+);
+
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.pg_proc p
+    join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+    where n.nspname in ('public', 'security')
+      and pg_catalog.has_function_privilege('public', p.oid, 'EXECUTE')
+  ),
+  'ninguna función de public o security queda ejecutable por PUBLIC'
+);
+
 select * from finish();
 rollback;
