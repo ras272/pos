@@ -2,9 +2,15 @@ import { readdir, readFile } from "node:fs/promises"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
 
+// `.temp` y `.branches` son cache de la CLI de Supabase: quedan gitignoreados y
+// contienen volcados del catálogo de Postgres, donde los nombres de rol propios
+// del motor aparecen como texto. Escanearlos no protege nada —nunca entran al
+// repositorio— y vuelca el gate en cualquier corrida que haya dejado cache.
 const ignoredDirectories = new Set([
+  ".branches",
   ".git",
   ".next",
+  ".temp",
   ".turbo",
   "coverage",
   "dist",
