@@ -320,6 +320,72 @@ export type Database = {
           },
         ]
       }
+      document_cancellations: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          reason: string
+          received_at: string
+          requested_at: string
+          requested_by_user_id: string
+          response_code: string | null
+          response_message: string | null
+          sifen_status: string
+          tenant_id: string
+          transmit_attempts: number
+          transmitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          id?: string
+          reason: string
+          received_at?: string
+          requested_at: string
+          requested_by_user_id: string
+          response_code?: string | null
+          response_message?: string | null
+          sifen_status?: string
+          tenant_id: string
+          transmit_attempts?: number
+          transmitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          reason?: string
+          received_at?: string
+          requested_at?: string
+          requested_by_user_id?: string
+          response_code?: string | null
+          response_message?: string | null
+          sifen_status?: string
+          tenant_id?: string
+          transmit_attempts?: number
+          transmitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_cancellations_document_id_fkey"
+            columns: ["document_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "document_cancellations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_counters: {
         Row: {
           created_at: string
@@ -387,6 +453,465 @@ export type Database = {
           },
           {
             foreignKeyName: "document_counters_timbrado_id_fkey"
+            columns: ["timbrado_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_timbrados"
+            referencedColumns: ["id", "tenant_id"]
+          },
+        ]
+      }
+      document_line_modifiers: {
+        Row: {
+          created_at: string
+          display_order: number
+          document_line_id: string
+          id: string
+          modifier_group_name: string
+          modifier_option_id: string
+          name: string
+          price_delta_gs: number
+          sequence_number: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          document_line_id: string
+          id?: string
+          modifier_group_name: string
+          modifier_option_id: string
+          name: string
+          price_delta_gs: number
+          sequence_number: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          document_line_id?: string
+          id?: string
+          modifier_group_name?: string
+          modifier_option_id?: string
+          name?: string
+          price_delta_gs?: number
+          sequence_number?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_line_modifiers_document_line_id_fkey"
+            columns: ["document_line_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "document_lines"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "document_line_modifiers_modifier_option_id_fkey"
+            columns: ["modifier_option_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "modifier_options"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "document_line_modifiers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_lines: {
+        Row: {
+          created_at: string
+          discount_gs: number
+          document_id: string
+          document_type: string
+          id: string
+          iva_amount_gs: number
+          iva_rate: number
+          line_number: number
+          line_total_gs: number
+          modifiers_total_gs: number
+          order_line_id: string | null
+          product_category_name: string
+          product_id: string
+          product_name: string
+          quantity: number
+          taxable_base_gs: number
+          tenant_id: string
+          unit_price_gs: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_gs?: number
+          document_id: string
+          document_type: string
+          id?: string
+          iva_amount_gs: number
+          iva_rate: number
+          line_number: number
+          line_total_gs: number
+          modifiers_total_gs?: number
+          order_line_id?: string | null
+          product_category_name: string
+          product_id: string
+          product_name: string
+          quantity: number
+          taxable_base_gs: number
+          tenant_id: string
+          unit_price_gs: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_gs?: number
+          document_id?: string
+          document_type?: string
+          id?: string
+          iva_amount_gs?: number
+          iva_rate?: number
+          line_number?: number
+          line_total_gs?: number
+          modifiers_total_gs?: number
+          order_line_id?: string | null
+          product_category_name?: string
+          product_id?: string
+          product_name?: string
+          quantity?: number
+          taxable_base_gs?: number
+          tenant_id?: string
+          unit_price_gs?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_lines_document_id_fkey"
+            columns: ["document_id", "tenant_id", "document_type"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "tenant_id", "document_type"]
+          },
+          {
+            foreignKeyName: "document_lines_order_line_id_fkey"
+            columns: ["order_line_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "order_lines"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "document_lines_product_id_fkey"
+            columns: ["product_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "document_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_transmission_events: {
+        Row: {
+          attempt_number: number
+          created_at: string
+          document_cancellation_id: string | null
+          document_id: string | null
+          id: string
+          outcome: string
+          request_payload_hash: string | null
+          response_code: string | null
+          response_message: string | null
+          status: string
+          tenant_id: string
+          transmitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_number: number
+          created_at?: string
+          document_cancellation_id?: string | null
+          document_id?: string | null
+          id?: string
+          outcome: string
+          request_payload_hash?: string | null
+          response_code?: string | null
+          response_message?: string | null
+          status?: string
+          tenant_id: string
+          transmitted_at: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_number?: number
+          created_at?: string
+          document_cancellation_id?: string | null
+          document_id?: string | null
+          id?: string
+          outcome?: string
+          request_payload_hash?: string | null
+          response_code?: string | null
+          response_message?: string | null
+          status?: string
+          tenant_id?: string
+          transmitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_transmission_events_cancellation_id_fkey"
+            columns: ["document_cancellation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "document_cancellations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "document_transmission_events_document_id_fkey"
+            columns: ["document_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "document_transmission_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          anonymous_buyer_threshold_gs: number
+          anonymous_threshold_from: string
+          authorized_range_from: number
+          authorized_range_to: number
+          business_date: string
+          buyer_doc_number: string | null
+          buyer_doc_type: string | null
+          buyer_name: string | null
+          buyer_ruc_dv: number | null
+          cash_session_id: string
+          cdc: string | null
+          certificate_expires_at: string
+          created_at: string
+          credit_note_scope: string | null
+          customer_id: string | null
+          discount_total_gs: number
+          document_type: string
+          establishment_code: string
+          establishment_id: string
+          expedition_point_code: string
+          id: string
+          issuer_legal_name: string
+          issuer_ruc: string
+          issuer_ruc_dv: number
+          iva_10_gs: number
+          iva_5_gs: number
+          line_count: number
+          number: number
+          order_id: string | null
+          pos_terminal_id: string
+          received_at: string
+          references_document_id: string | null
+          references_document_type: string | null
+          sifen_response_code: string | null
+          sifen_response_message: string | null
+          sifen_status: string
+          signed_at: string
+          signing_certificate_id: string
+          status: string
+          taxable_base_10_gs: number
+          taxable_base_5_gs: number
+          tenant_id: string
+          timbrado_id: string
+          timbrado_number: string
+          timbrado_valid_from: string
+          timbrado_valid_to: string | null
+          total_gs: number
+          transmit_attempts: number
+          transmit_deadline_at: string
+          transmitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          anonymous_buyer_threshold_gs: number
+          anonymous_threshold_from: string
+          authorized_range_from: number
+          authorized_range_to: number
+          business_date: string
+          buyer_doc_number?: string | null
+          buyer_doc_type?: string | null
+          buyer_name?: string | null
+          buyer_ruc_dv?: number | null
+          cash_session_id: string
+          cdc?: string | null
+          certificate_expires_at: string
+          created_at?: string
+          credit_note_scope?: string | null
+          customer_id?: string | null
+          discount_total_gs?: number
+          document_type: string
+          establishment_code: string
+          establishment_id: string
+          expedition_point_code: string
+          id?: string
+          issuer_legal_name: string
+          issuer_ruc: string
+          issuer_ruc_dv: number
+          iva_10_gs?: number
+          iva_5_gs?: number
+          line_count: number
+          number: number
+          order_id?: string | null
+          pos_terminal_id: string
+          received_at?: string
+          references_document_id?: string | null
+          references_document_type?: string | null
+          sifen_response_code?: string | null
+          sifen_response_message?: string | null
+          sifen_status?: string
+          signed_at: string
+          signing_certificate_id: string
+          status?: string
+          taxable_base_10_gs?: number
+          taxable_base_5_gs?: number
+          tenant_id: string
+          timbrado_id: string
+          timbrado_number: string
+          timbrado_valid_from: string
+          timbrado_valid_to?: string | null
+          total_gs: number
+          transmit_attempts?: number
+          transmit_deadline_at: string
+          transmitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          anonymous_buyer_threshold_gs?: number
+          anonymous_threshold_from?: string
+          authorized_range_from?: number
+          authorized_range_to?: number
+          business_date?: string
+          buyer_doc_number?: string | null
+          buyer_doc_type?: string | null
+          buyer_name?: string | null
+          buyer_ruc_dv?: number | null
+          cash_session_id?: string
+          cdc?: string | null
+          certificate_expires_at?: string
+          created_at?: string
+          credit_note_scope?: string | null
+          customer_id?: string | null
+          discount_total_gs?: number
+          document_type?: string
+          establishment_code?: string
+          establishment_id?: string
+          expedition_point_code?: string
+          id?: string
+          issuer_legal_name?: string
+          issuer_ruc?: string
+          issuer_ruc_dv?: number
+          iva_10_gs?: number
+          iva_5_gs?: number
+          line_count?: number
+          number?: number
+          order_id?: string | null
+          pos_terminal_id?: string
+          received_at?: string
+          references_document_id?: string | null
+          references_document_type?: string | null
+          sifen_response_code?: string | null
+          sifen_response_message?: string | null
+          sifen_status?: string
+          signed_at?: string
+          signing_certificate_id?: string
+          status?: string
+          taxable_base_10_gs?: number
+          taxable_base_5_gs?: number
+          tenant_id?: string
+          timbrado_id?: string
+          timbrado_number?: string
+          timbrado_valid_from?: string
+          timbrado_valid_to?: string | null
+          total_gs?: number
+          transmit_attempts?: number
+          transmit_deadline_at?: string
+          transmitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_cash_session_id_fkey"
+            columns: ["cash_session_id", "pos_terminal_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id", "pos_terminal_id"]
+          },
+          {
+            foreignKeyName: "documents_certificate_id_fkey"
+            columns: ["signing_certificate_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_certificates"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "documents_customer_id_fkey"
+            columns: ["customer_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "documents_establishment_id_fkey"
+            columns: ["establishment_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "documents_order_id_fkey"
+            columns: ["order_id", "establishment_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id", "establishment_id"]
+          },
+          {
+            foreignKeyName: "documents_pos_terminal_id_fkey"
+            columns: ["pos_terminal_id", "establishment_id"]
+            isOneToOne: false
+            referencedRelation: "pos_terminals"
+            referencedColumns: ["id", "establishment_id"]
+          },
+          {
+            foreignKeyName: "documents_references_document_id_fkey"
+            columns: [
+              "references_document_id",
+              "tenant_id",
+              "references_document_type",
+            ]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "tenant_id", "document_type"]
+          },
+          {
+            foreignKeyName: "documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_timbrado_id_fkey"
             columns: ["timbrado_id", "tenant_id"]
             isOneToOne: false
             referencedRelation: "fiscal_timbrados"
@@ -911,6 +1436,182 @@ export type Database = {
           },
           {
             foreignKeyName: "orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_reversals: {
+        Row: {
+          cash_session_id: string
+          created_at: string
+          id: string
+          payment_id: string
+          reason: string
+          reversed_at: string
+          reversed_by_user_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          cash_session_id: string
+          created_at?: string
+          id?: string
+          payment_id: string
+          reason: string
+          reversed_at: string
+          reversed_by_user_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          cash_session_id?: string
+          created_at?: string
+          id?: string
+          payment_id?: string
+          reason?: string
+          reversed_at?: string
+          reversed_by_user_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reversals_cash_session_id_fkey"
+            columns: ["cash_session_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payment_reversals_payment_id_fkey"
+            columns: ["payment_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payment_reversals_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_gs: number
+          business_date: string
+          cash_session_id: string
+          change_gs: number
+          charged_total_gs: number | null
+          created_at: string
+          created_by_user_id: string
+          document_id: string | null
+          establishment_id: string
+          external_confirmed_at: string | null
+          external_reference: string | null
+          id: string
+          method: string
+          occurred_at: string
+          order_id: string
+          pos_terminal_id: string
+          status: string
+          tenant_id: string
+          tendered_gs: number | null
+          tip_gs: number
+          updated_at: string
+        }
+        Insert: {
+          amount_gs: number
+          business_date: string
+          cash_session_id: string
+          change_gs?: number
+          charged_total_gs?: number | null
+          created_at?: string
+          created_by_user_id: string
+          document_id?: string | null
+          establishment_id: string
+          external_confirmed_at?: string | null
+          external_reference?: string | null
+          id?: string
+          method: string
+          occurred_at: string
+          order_id: string
+          pos_terminal_id: string
+          status?: string
+          tenant_id: string
+          tendered_gs?: number | null
+          tip_gs?: number
+          updated_at?: string
+        }
+        Update: {
+          amount_gs?: number
+          business_date?: string
+          cash_session_id?: string
+          change_gs?: number
+          charged_total_gs?: number | null
+          created_at?: string
+          created_by_user_id?: string
+          document_id?: string | null
+          establishment_id?: string
+          external_confirmed_at?: string | null
+          external_reference?: string | null
+          id?: string
+          method?: string
+          occurred_at?: string
+          order_id?: string
+          pos_terminal_id?: string
+          status?: string
+          tenant_id?: string
+          tendered_gs?: number | null
+          tip_gs?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_cash_session_id_fkey"
+            columns: ["cash_session_id", "pos_terminal_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id", "pos_terminal_id"]
+          },
+          {
+            foreignKeyName: "payments_document_id_fkey"
+            columns: ["document_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payments_establishment_id_fkey"
+            columns: ["establishment_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payments_order_id_fkey"
+            columns: ["order_id", "establishment_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id", "establishment_id"]
+          },
+          {
+            foreignKeyName: "payments_pos_terminal_id_fkey"
+            columns: ["pos_terminal_id", "establishment_id"]
+            isOneToOne: false
+            referencedRelation: "pos_terminals"
+            referencedColumns: ["id", "establishment_id"]
+          },
+          {
+            foreignKeyName: "payments_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
