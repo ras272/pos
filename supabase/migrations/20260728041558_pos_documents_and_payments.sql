@@ -616,7 +616,8 @@ begin
 
   -- Se compara por jsonb menos la lista de columnas moviles y no columna por
   -- columna: una columna que alguien agregue manana nace inmutable y el trigger
-  -- falla cerrado. Es la unica capa que tampoco saltea service_role.
+  -- falla cerrado. Es la unica capa que ni siquiera saltea una clave con
+  -- privilegios elevados, porque un trigger corre igual para todos.
   if pg_catalog.to_jsonb(new) - v_mutable is distinct from pg_catalog.to_jsonb(old) - v_mutable then
     raise exception 'document is frozen';
   end if;
