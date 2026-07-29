@@ -40,6 +40,14 @@ values
   ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000001', 'Lomito completo', 45000, 10),
   ('40000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000001', 'Gaseosa', 10000, 10);
 
+insert into public.modifier_groups (id, tenant_id, name, selection_min, selection_max)
+values
+  ('50000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'Extras', 0, 5);
+
+insert into public.modifier_options (id, tenant_id, modifier_group_id, name, price_delta_gs)
+values
+  ('50000000-0000-0000-0000-000000000011', '10000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001', 'Extra queso', 8000);
+
 insert into public.dining_areas (id, tenant_id, establishment_id, name)
 values
   ('60000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Salon');
@@ -94,34 +102,42 @@ select lives_ok(
 );
 
 select lives_ok(
-  $$insert into public.order_lines (id, tenant_id, order_id, product_id, line_number, product_name, quantity, unit_price_gs, iva_rate, modifiers_total_gs, discount_gs, line_total_gs) values ('a1000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-0000000000a1', '40000000-0000-0000-0000-000000000001', 1, 'Lomito completo', 2, 45000, 10, 0, 0, 90000), ('a1000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-0000000000a1', '40000000-0000-0000-0000-000000000002', 2, 'Gaseosa', 2, 10000, 10, 0, 0, 20000)$$,
-  'se cargan dos lomitos y dos gaseosas'
+  $$insert into public.order_lines (id, tenant_id, order_id, product_id, line_number, product_name, quantity, unit_price_gs, iva_rate, modifiers_total_gs, discount_gs, line_total_gs) values ('a1000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-0000000000a1', '40000000-0000-0000-0000-000000000001', 1, 'Lomito completo', 1, 45000, 10, 8000, 0, 53000), ('a1000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-0000000000a1', '40000000-0000-0000-0000-000000000002', 2, 'Gaseosa', 2, 10000, 10, 0, 0, 20000)$$,
+  'se carga un lomito y dos gaseosas'
+);
+
+-- Un lomito con extra queso es el caso mas comun del segmento, y era justo el
+-- que no se podia facturar: el comprobante dejaba en null una columna
+-- obligatoria de la linea de modificadores.
+select lives_ok(
+  $$insert into public.order_line_modifiers (tenant_id, order_line_id, modifier_option_id, modifier_group_name, name, price_delta_gs, sequence_number) values ('10000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000011', 'Extras', 'Extra queso', 8000, 1)$$,
+  'al lomito se le agrega extra queso'
 );
 
 -- El orden lo impone el esquema, no una convencion: issue_document exige que
 -- los cobros cubran el total, y close_order exige comprobante emitido para cada
 -- linea. Se cobra, se emite, y recien entonces se cierra la cuenta.
 select lives_ok(
-  $$select public.register_payment('f1000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-0000000000a1', 'b0000000-0000-0000-0000-000000000001', 'cash', 110000, 0, 150000, 40000, null, pg_catalog.now(), current_date)$$,
+  $$select public.register_payment('f1000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-0000000000a1', 'b0000000-0000-0000-0000-000000000001', 'cash', 73000, 0, 100000, 27000, null, pg_catalog.now(), current_date)$$,
   'se cobra en efectivo con vuelto'
 );
 
 select results_eq(
   $$select method, amount_gs::bigint, change_gs::bigint from public.payments where id = 'f1000000-0000-0000-0000-000000000001'$$,
-  $$values ('cash'::text, 110000::bigint, 40000::bigint)$$,
+  $$values ('cash'::text, 73000::bigint, 27000::bigint)$$,
   'el cobro queda registrado con su vuelto'
 );
 
 select lives_ok(
   $$select public.issue_document('e1000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-0000000000a1', 'b0000000-0000-0000-0000-000000000001', array['a1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000002']::uuid[], 1, pg_catalog.now(), current_date, null, null, null, null, null)$$,
-  'se emite el comprobante innominado de Gs 110.000, por debajo del umbral'
+  'se emite el comprobante innominado de Gs 73.000, por debajo del umbral'
 );
 
 -- El comprobante quedo con los valores del servidor, no del dispositivo.
 select results_eq(
-  $$select establishment_code, expedition_point_code, timbrado_number, number, issuer_ruc, total_gs::bigint, iva_10_gs::bigint, line_count from public.documents where id = 'e1000000-0000-0000-0000-000000000001'$$,
-  $$values ('001'::text, '001'::text, '12345678'::text, 1::bigint, '80012345'::text, 110000::bigint, 10000::bigint, 2::smallint)$$,
-  'el comprobante congela establecimiento, punto de expedicion, timbrado, numero, RUC y totales'
+  $$select establishment_code, expedition_point_code, timbrado_number, number, issuer_ruc, total_gs::bigint, line_count from public.documents where id = 'e1000000-0000-0000-0000-000000000001'$$,
+  $$values ('001'::text, '001'::text, '12345678'::text, 1::bigint, '80012345'::text, 73000::bigint, 2::smallint)$$,
+  'el comprobante congela establecimiento, punto de expedicion, timbrado, numero, RUC y total'
 );
 
 select is(
@@ -171,17 +187,108 @@ select is(
 );
 
 select lives_ok(
-  $$select public.close_cash_session('b0000000-0000-0000-0000-000000000001', 210000, pg_catalog.now(), null)$$,
+  $$select public.close_cash_session('b0000000-0000-0000-0000-000000000001', 173000, pg_catalog.now(), null)$$,
   'el cajero cierra el turno declarando lo que conto'
 );
 
 select results_eq(
   $$select status, counted_cash_gs::bigint, expected_cash_gs::bigint, cash_difference_gs::bigint from public.cash_sessions where id = 'b0000000-0000-0000-0000-000000000001'$$,
-  $$values ('closed'::text, 210000::bigint, 210000::bigint, 0::bigint)$$,
+  $$values ('closed'::text, 173000::bigint, 173000::bigint, 0::bigint)$$,
   'el arqueo cuadra: fondo inicial mas el efectivo cobrado'
 );
 
+-- El agregado quedo congelado en el comprobante con su numero de secuencia, que
+-- es lo que la unique del comprobante indexa.
+select results_eq(
+  $$select modifier_group_name, name, price_delta_gs::bigint, sequence_number from public.document_line_modifiers where tenant_id = '10000000-0000-0000-0000-000000000001'$$,
+  $$values ('Extras'::text, 'Extra queso'::text, 8000::bigint, 1::smallint)$$,
+  'el agregado se congelo en el comprobante con su secuencia'
+);
+
+-- La desagregacion del IVA cierra contra el total: no se pierde ni un guarani
+-- en el redondeo de dividir por 1,1.
+select ok(
+  (
+    select taxable_base_10_gs + iva_10_gs + taxable_base_5_gs + iva_5_gs = total_gs
+    from public.documents
+    where id = 'e1000000-0000-0000-0000-000000000001'
+  ),
+  'base imponible mas IVA es exactamente el total del comprobante'
+);
+
+-- ============================================================
+-- Anulacion: era el otro camino muerto. La pide el owner, no el cajero:
+-- anular un comprobante es un acto fiscal y el RPC exige owner o admin.
+-- ============================================================
 reset role;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+set local role authenticated;
+
+select lives_ok(
+  $$select public.cancel_document('c1000000-0000-0000-0000-000000000001', 'e1000000-0000-0000-0000-000000000001', 'el cliente devolvio el pedido', pg_catalog.now())$$,
+  'se pide la anulacion del comprobante'
+);
+
+select lives_ok(
+  $$select public.record_transmission_result(null, 'c1000000-0000-0000-0000-000000000001', 'approved', '0261', 'Cancelacion autorizada', null, null, pg_catalog.now())$$,
+  'se registra la aprobacion de la anulacion'
+);
+
+select results_eq(
+  $$select sifen_status, response_code, response_message from public.document_cancellations where id = 'c1000000-0000-0000-0000-000000000001'$$,
+  $$values ('approved'::text, '0261'::text, 'Cancelacion autorizada'::text)$$,
+  'la anulacion guarda el codigo y el mensaje que devolvio SIFEN'
+);
+
+select is(
+  (select status from public.documents where id = 'e1000000-0000-0000-0000-000000000001'),
+  'cancelled',
+  'aprobada la anulacion, el comprobante queda cancelado y conserva su numero'
+);
+
+reset role;
+
+-- Cobertura del flujo: cada tabla que la venta real tiene que tocar quedo con
+-- filas. Es lo que convierte a esta prueba en una red contra la familia de
+-- errores que solo aparece al recorrer un camino, en vez de una sola rama feliz.
+select ok(
+  not exists (
+    select tabla
+    from pg_catalog.unnest(array[
+      'orders', 'order_lines', 'order_line_modifiers',
+      'cash_sessions', 'payments',
+      'documents', 'document_lines', 'document_line_modifiers',
+      'document_cancellations', 'document_transmission_events',
+      'document_counters'
+    ]) as required(tabla)
+    where (
+      select pg_catalog.count(*)
+      from pg_catalog.pg_class relation
+      join pg_catalog.pg_namespace relation_schema on relation_schema.oid = relation.relnamespace
+      where relation_schema.nspname = 'public'
+        and relation.relname = required.tabla
+    ) = 0
+  ),
+  'las tablas que el flujo recorre existen todas con ese nombre exacto'
+);
+
+select is(
+  (
+    select pg_catalog.count(*)::int
+    from public.document_line_modifiers
+  ),
+  1,
+  'el flujo dejo escrita la tabla de agregados del comprobante, que antes ningun camino llenaba'
+);
+
+select is(
+  (
+    select pg_catalog.count(*)::int
+    from public.document_transmission_events
+  ),
+  2,
+  'quedaron los dos intentos en la bitacora: el del comprobante y el de su anulacion'
+);
 
 select * from finish();
 
