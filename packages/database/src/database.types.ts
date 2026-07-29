@@ -1877,21 +1877,30 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          legal_name: string | null
           name: string
+          ruc: string | null
+          ruc_dv: number | null
           status: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          legal_name?: string | null
           name: string
+          ruc?: string | null
+          ruc_dv?: number | null
           status?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          legal_name?: string | null
           name?: string
+          ruc?: string | null
+          ruc_dv?: number | null
           status?: string
           updated_at?: string
         }
