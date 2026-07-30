@@ -1,1 +1,8 @@
+# Todo archivo de texto se guarda y se entrega con LF, sin importar el
+# core.autocrlf de la maquina. Sin esta linea, un checkout en Windows con
+# core.autocrlf=true convierte a CRLF y `pnpm format:check` falla en local
+# mientras pasa en CI, porque prettier esta configurado con endOfLine: lf.
+# El gate tiene que dar el mismo resultado en las dos partes.
+* text=auto eol=lf
+
 packages/database/src/database.types.ts text eol=lf
