@@ -1958,6 +1958,14 @@ export type Database = {
         }
         Returns: string
       }
+      confirm_payment: {
+        Args: {
+          p_external_confirmed_at: string
+          p_external_reference: string
+          p_payment_id: string
+        }
+        Returns: string
+      }
       issue_document: {
         Args: {
           p_business_date: string
@@ -2029,6 +2037,16 @@ export type Database = {
           p_payment_id: string
           p_tendered_gs: number
           p_tip_gs: number
+        }
+        Returns: string
+      }
+      reverse_payment: {
+        Args: {
+          p_cash_session_id: string
+          p_payment_id: string
+          p_reason: string
+          p_reversal_id: string
+          p_reversed_at: string
         }
         Returns: string
       }

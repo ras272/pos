@@ -172,7 +172,19 @@ select policies_are(
 );
 
 -- Exact grants prevent privilege escalation before RLS gets a chance to decide.
-select table_privs_are('public', 'tenants', 'authenticated', array['SELECT', 'UPDATE']::text[], 'authenticated solo recibe SELECT/UPDATE en tenants');
+-- El UPDATE de tenants pasa a ser por columna: status es de plataforma, no del
+-- inquilino, y como is_tenant_member exige tenant.status = 'active', un admin
+-- que se suspendia perdia la policy que le habria permitido revertirlo.
+select table_privs_are('public', 'tenants', 'authenticated', array['SELECT']::text[], 'authenticated solo recibe SELECT de tabla en tenants');
+
+select ok(
+  pg_catalog.has_column_privilege('authenticated', 'public.tenants', 'name', 'update')
+  and pg_catalog.has_column_privilege('authenticated', 'public.tenants', 'legal_name', 'update')
+  and not pg_catalog.has_column_privilege('authenticated', 'public.tenants', 'status', 'update')
+  and not pg_catalog.has_column_privilege('authenticated', 'public.tenants', 'ruc', 'update')
+  and not pg_catalog.has_column_privilege('authenticated', 'public.tenants', 'ruc_dv', 'update'),
+  'suspenderse el tenant y cambiarse el RUC quedan fuera de PostgREST'
+);
 select table_privs_are('public', 'tenant_memberships', 'authenticated', array[]::text[], 'authenticated no recibe acceso directo a tenant_memberships');
 select table_privs_are('public', 'establishments', 'authenticated', array['SELECT', 'INSERT', 'UPDATE']::text[], 'authenticated solo recibe SELECT/INSERT/UPDATE en establishments');
 select table_privs_are('public', 'tenants', 'anon', array[]::text[], 'anon no recibe acceso a tenants');
