@@ -64,7 +64,12 @@ async function readGeneratedFiles(root, errors) {
     }
     try {
       const content = await readFile(path.join(root, entry.path), "utf8")
-      const actual = createHash("sha256").update(content).digest("hex")
+      // El hash se calcula sobre el contenido con finales de linea normalizados:
+      // si dependiera del CRLF, el mismo archivo daria un hash en un checkout de
+      // Windows y otro en CI, y el gate pasaria o fallaria segun el sistema.
+      const actual = createHash("sha256")
+        .update(content.replaceAll("\r\n", "\n"))
+        .digest("hex")
       if (actual === entry.sha256) generatedFiles.add(entry.path)
       else
         errors.push(`${label}: generated file hash changed for ${entry.path}`)

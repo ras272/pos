@@ -1,26 +1,26 @@
 [
   {
     "path": "packages/ui/src/components/chart.tsx",
-    "sha256": "e9b408753c7e43e74a5acbf8ec486a43e7d7e0ffd30225f08c1b108069fe0982"
+    "sha256": "430786caed16667fb9b6c02b5a7805c0f6b8f4b17950864ffa18e429ea6cce4b"
   },
   {
     "path": "packages/ui/src/components/combobox.tsx",
-    "sha256": "0ed36dd8b173cfdc0eb4f71e94814df6707ea6292e20e0bb33f3dc86c3ad2589"
+    "sha256": "0662b963c9f2e576e9b91ca8adf67e0072fe5659b679a1f9e069f4609b3908c6"
   },
   {
     "path": "packages/ui/src/components/context-menu.tsx",
-    "sha256": "4240a91e3b15b9c3805a725926f29281b5f4654c659952a96d81a138c2c65c00"
+    "sha256": "c6d80971bced4930f8edb775ca5876819e8c8bd0b6e8647c8c3b69cfe7790e68"
   },
   {
     "path": "packages/ui/src/components/dropdown-menu.tsx",
-    "sha256": "aab44979cb0d81591ff0abe638d4ee085146354164703a8012de10e064119739"
+    "sha256": "756693c9aea1df76251bd005d9565271c39838ef68217e26d0a43751def5b707"
   },
   {
     "path": "packages/ui/src/components/menubar.tsx",
-    "sha256": "26f0a002d17e8788165bc1520bce24dbb3c2df631e60d224bc6cb08c38eac222"
+    "sha256": "5ce29572d2f83a38b05f6abc1dd5de9208d5d420abfab0cc09dbbae8bc3833f6"
   },
   {
     "path": "packages/ui/src/components/sidebar.tsx",
-    "sha256": "8cb208c2c19c629cf2103611b5d7e1a70c3cde2ed406222ecb8cada72bc79cdc"
+    "sha256": "3ccbb0fbe0a5b937612f44e91b358a08d5cc06a4dd564910a66f36f90f53aea3"
   }
 ]
