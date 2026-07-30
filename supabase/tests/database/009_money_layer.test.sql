@@ -140,6 +140,15 @@ select throws_ok(
   'un reverso sin motivo no entra: plata que desaparece del arqueo necesita explicacion'
 );
 
+-- Cobrar y no facturar era un estado estable con el arqueo cuadrado: cancelar la
+-- cuenta dejaba la plata cobrada sin comprobante y sin reverso.
+select throws_ok(
+  $$select public.close_order('90000000-0000-0000-0000-0000000000b1', pg_catalog.now(), 'el cliente se fue')$$,
+  'P0001',
+  'order with live payments cannot be cancelled: reverse the payments first',
+  'no se cancela una cuenta que tiene cobros vivos'
+);
+
 -- ============================================================
 -- El arqueo. El QR no entra al cajon; el efectivo revertido en el mismo turno
 -- suma y resta, y tiene que quedar en cero.

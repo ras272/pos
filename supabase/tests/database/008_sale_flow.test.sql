@@ -164,14 +164,43 @@ select results_eq(
   'reemitir el mismo documento no crea una fila nueva ni quema otro numero'
 );
 
+-- Con el comprobante emitido y la cuenta todavia abierta, la linea ya facturada
+-- queda congelada: el papel entregado no puede pasar a decir otra cosa.
+select throws_ok(
+  $$update public.order_lines set status = 'voided', voided_at = pg_catalog.now(), voided_by_user_id = '00000000-0000-0000-0000-000000000004' where id = 'a1000000-0000-0000-0000-000000000001'$$,
+  'P0001',
+  'invoiced order line is frozen',
+  'una linea ya facturada no se puede anular'
+);
+
+select throws_ok(
+  $$update public.order_lines set discount_gs = 5000 where id = 'a1000000-0000-0000-0000-000000000002'$$,
+  'P0001',
+  'invoiced order line is frozen',
+  'una linea ya facturada no se puede repreciar'
+);
+
 select lives_ok(
   $$select public.close_order('90000000-0000-0000-0000-0000000000a1', pg_catalog.now(), null)$$,
   'con el comprobante emitido, el mozo cierra la cuenta'
 );
 
+-- Declarar un resultado terminal ante la DNIT es acto fiscal: el cajero puede
+-- marcar un reintento fallido, pero aprobar o rechazar es de owner o admin.
+select throws_ok(
+  $$select public.record_transmission_result('e1000000-0000-0000-0000-000000000001', null, 'approved', '0260', 'Autorizado', null, 'cdc-inventado', pg_catalog.now())$$,
+  '42501',
+  'owner or admin role is required to record a terminal SIFEN outcome',
+  'un mozo no puede inventar que SIFEN aprobo: approved es irreversible'
+);
+
+reset role;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+set local role authenticated;
+
 select lives_ok(
   $$select public.record_transmission_result('e1000000-0000-0000-0000-000000000001', null, 'approved', '0260', 'Autorizado', null, '01800123450010010000000112026072912345678901', pg_catalog.now())$$,
-  'se registra la aprobacion de SIFEN'
+  'el owner registra la aprobacion de SIFEN'
 );
 
 select results_eq(
