@@ -128,6 +128,15 @@ select results_eq(
   'el cobro queda registrado con su vuelto'
 );
 
+-- El dispositivo no puede declarar una jornada de otra epoca para caer bajo el
+-- umbral viejo de 35.000.000 y emitir innominado por encima de los 7.000.000.
+select throws_ok(
+  $$select public.issue_document('e1000000-0000-0000-0000-0000000000ff', '90000000-0000-0000-0000-0000000000a1', 'b0000000-0000-0000-0000-000000000001', array['a1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000002']::uuid[], 1, pg_catalog.now(), date '2026-02-01', null, null, null, null, null)$$,
+  'P0001',
+  'business_date is not consistent with signed_at',
+  'la jornada operativa no puede alejarse de la fecha de firma'
+);
+
 select lives_ok(
   $$select public.issue_document('e1000000-0000-0000-0000-000000000001', '90000000-0000-0000-0000-0000000000a1', 'b0000000-0000-0000-0000-000000000001', array['a1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000002']::uuid[], 1, pg_catalog.now(), current_date, null, null, null, null, null)$$,
   'se emite el comprobante innominado de Gs 73.000, por debajo del umbral'
