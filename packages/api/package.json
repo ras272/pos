@@ -20,7 +20,7 @@
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "eslint": "^9",
+    "eslint": "^10",
     "typescript": "^5",
     "vitest": "4.1.10"
   }
