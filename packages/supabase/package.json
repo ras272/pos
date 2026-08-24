@@ -19,7 +19,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.110.8",
+    "@supabase/supabase-js": "2.112.3",
     "@workspace/database": "workspace:*",
     "@workspace/env": "workspace:*"
   },
@@ -28,6 +28,6 @@
     "@workspace/typescript-config": "workspace:*",
     "eslint": "^9",
     "typescript": "^5",
-    "vitest": "4.1.10"
+    "vitest": "4.1.11"
   }
 }

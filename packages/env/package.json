@@ -29,7 +29,7 @@
     "@workspace/typescript-config": "workspace:*",
     "eslint": "^9",
     "typescript": "^5",
-    "vite": "8.1.5",
-    "vitest": "4.1.10"
+    "vite": "8.2.2",
+    "vitest": "4.1.11"
   }
 }
