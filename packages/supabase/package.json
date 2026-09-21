@@ -19,7 +19,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.110.8",
+    "@supabase/supabase-js": "2.116.0",
     "@workspace/database": "workspace:*",
     "@workspace/env": "workspace:*"
   },
