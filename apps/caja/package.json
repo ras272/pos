@@ -23,7 +23,7 @@
     "@vitejs/plugin-react": "6.0.4",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "eslint": "^9",
+    "eslint": "^10",
     "typescript": "^5",
     "vite": "8.1.5",
     "vitest": "4.1.10"
